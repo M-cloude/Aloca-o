@@ -149,7 +149,7 @@
             <div class="upload-box" onclick="document.getElementById('upl').click()">
                 <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
                 <h2 style="margin:0 0 10px 0; font-size: 18px; font-weight:700;">Clique para Importar Planilha</h2>
-                <p style="margin:0; color:#94a3b8; font-size: 12px;">Com Match Preciso e Nuvem Firebase</p>
+                <p style="margin:0; color:#94a3b8; font-size: 12px;">Match Fiel à Coluna AC (Romaneio)</p>
                 <input type="file" id="upl" accept=".xlsx" style="display:none">
             </div>
             <div id="loading-overlay"><i class="fa-solid fa-microchip"></i> PROCESSANDO DADOS...</div>
@@ -189,13 +189,13 @@
                             <th>Veículo</th>
                             <th style="color: #fbbf24;">Letra</th>
                             <th>Tipo Match</th>
-                            <th style="color:var(--success)">Cluster (Col F)</th>
+                            <th style="color:var(--success)">Cluster (Col AC)</th>
                         </tr></thead>
                         <tbody id="b-alocados"></tbody>
                     </table>
 
                     <table id="t2" class="hidden">
-                        <thead><tr><th>Rota AT</th><th>AT Completa</th><th>Litragem</th><th>Letra</th><th>Cluster (F)</th></tr></thead>
+                        <thead><tr><th>Rota AT</th><th>AT Completa</th><th>Litragem</th><th>Letra</th><th>Cluster (AC)</th></tr></thead>
                         <tbody id="b-rotas"></tbody>
                     </table>
 
@@ -295,7 +295,7 @@
         else document.getElementById('pull-area').style.display = 'none';
     };
 
-    // 4. LÓGICA DE TEXTO
+    // 4. LÓGICA DE TEXTO E SCANNER DE CABEÇALHO
     const cleanBasic = t => String(t||"").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
    
     function getTokens(str) {
@@ -331,14 +331,17 @@
         for(let R=range.s.r; R<= Math.min(range.e.r, 15); ++R) {
             for(let C=range.s.c; C<=range.e.c; ++C) {
                 let cell = ws[XLSX.utils.encode_cell({r:R, c:C})];
-                if(cell && cell.v && String(cell.v).toLowerCase().includes("rota")) return R;
+                if(cell && cell.v) {
+                    let v = String(cell.v).toLowerCase();
+                    if(v.includes("rota") || v.includes("at /") || v.includes("nome") || v.includes("motorista")) return R;
+                }
             }
         }
         return 0;
     }
 
     function mapColumns(ws, rowIdx) {
-        let map = { rotaAt:'A', atTo:'B', letra:'C', clusterR:'F', litragem:'T', nome:'A', id:'C', clusterM:'E', veic:'G', rodou:'B' };
+        let map = { rotaAt:'A', atTo:'B', letra:'C', clusterR:'AC', litragem:'T', nome:'B', id:'C', clusterM:'E', veic:'G', rodou:'H' };
         let range = XLSX.utils.decode_range(ws['!ref']);
         for(let C=range.s.c; C<=range.e.c; ++C) {
             let cell = ws[XLSX.utils.encode_cell({r:rowIdx, c:C})];
@@ -349,17 +352,14 @@
             if(h.includes("rota") && !h.includes("at")) map.rotaAt = colLet;
             if(h.includes("at /") || h.includes("at/to")) map.atTo = colLet;
             if(h.includes("letra") || h.includes("rota id")) map.letra = colLet;
-            if(h.includes("cidade") || h.includes("destino") || h.includes("municipio") || h.includes("endereço") || h.includes("cluster")) map.clusterR = colLet;
             if(h.includes("litragem") || h.includes("volume") || h.includes("cubagem") || h.includes("vol.")) map.litragem = colLet;
-            if(h.includes("nome")) map.nome = colLet;
             if(h.includes("id") && !h.includes("rota")) map.id = colLet;
-            if(h.includes("cluster") || h.includes("preferencia")) map.clusterM = colLet;
             if(h.includes("veiculo") || h.includes("veículo")) map.veic = colLet;
         }
         return map;
     }
 
-    // 5. EVENTO DE UPLOAD E LEITURA (CORRIGIDO)
+    // 5. EVENTO DE UPLOAD E LEITURA DA PLANILHA
     document.getElementById('upl').addEventListener('change', function(e) {
         if(!e.target.files[0]) return;
         window.store = { allocated: [], routes: [], drivers: [], filename: "" };
@@ -377,23 +377,26 @@
 
                     if(sR && sM) {
                         const wsR = wb.Sheets[sR]; const wsM = wb.Sheets[sM];
-                        let dateObj = getJsDate(wsM['A2']);
+                       
+                        let dataCell = wsM['B2'] ? wsM['B2'] : wsM['A2'];
+                        let dateObj = getJsDate(dataCell);
                         window.dbData.dataCode = getDateCode(dateObj);
                        
                         let rowR = findHeaderRow(wsR); let mapR = mapColumns(wsR, rowR);
                         let rowM = findHeaderRow(wsM); let mapM = mapColumns(wsM, rowM);
                        
-                        // Garante que a Coluna F seja o Alvo Visual
-                        mapR.clusterR = 'F';
+                        // GARANTIA CIRÚRGICA DOS MAPEAMENTOS PEDIDOS
+                        mapR.clusterR = 'AC';
+                        mapM.clusterM = 'E';
+                        mapM.nome = 'B';
 
-                        // AQUI ESTAVA O ERRO NA VERSÃO ANTERIOR: RESTAURADO O range: rowR + 1
                         let rawRom = XLSX.utils.sheet_to_json(wsR, {header: "A", range: rowR + 1});
                         let rawMot = XLSX.utils.sheet_to_json(wsM, {header: "A", range: rowM + 1});
 
                         runEngine(rawRom, rawMot, mapR, mapM);
                         renderScreen();
-                    } else { alert("Erro: Abas não encontradas."); }
-                } catch (err) { alert("Erro: " + err.message); }
+                    } else { alert("Erro: Abas 'Romaneio' e 'Motorista' não encontradas."); }
+                } catch (err) { alert("Erro ao processar: " + err.message); }
                 document.getElementById('loading-overlay').style.display = 'none';
             }, 100);
         };
@@ -415,11 +418,11 @@
                 if(!rId.toLowerCase().includes("rota") && rId.length > 0) rId = "Rota " + rId;
                 let letraVal = String(r[mapR.letra] || "");
                 let litVal = String(r[mapR.litragem] || "-");
-                let clusterF = String(r[mapR.clusterR] || ""); // Puxa especificamente da F
+                let clusterRot = String(r[mapR.clusterR] || "");
 
                 rotasValidas.push({
                     raw: r, id: rId, at: r[mapR.atTo], letra: letraVal,
-                    cluster: clusterF, st: 'pendente', litragem: litVal
+                    cluster: clusterRot, st: 'pendente', litragem: litVal
                 });
             }
         });
@@ -431,12 +434,12 @@
             let nomeReal = String(m[mapM.nome]||"").trim();
             let id = String(m[mapM.id]||"");
 
-            if(nome.length > 2 && !v.includes("MOTO")) {
+            if(nome.length > 2 && !v.includes("MOTO") && !nome.includes("NOME") && !nome.includes("MOTORISTA")) {
                 window.driverMap[nome] = id;
                 window.allDriversList.push(nomeReal);
             }
 
-            if(v.includes("MOTO") || v.includes("PASSEIO")) { ignored++; return; }
+            if(v.includes("MOTO") || v.includes("PASSEIO") || nome.length < 2) { ignored++; return; }
             let aceito = false;
             if(v.includes("FIORINO") || v.includes("VAN") || v.includes("VUC") || v.includes("UTILITARIO") || v.includes("ENTREGA")) aceito = true;
 
