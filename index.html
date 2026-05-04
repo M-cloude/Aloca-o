@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema SPX - Alocação e Rodízio</title>
    
+    <!-- Bibliotecas Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+   
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
    
@@ -30,6 +32,7 @@
             background-attachment: fixed;
         }
        
+        /* HEADER */
         .top-bar {
             background: var(--glass); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(255,255,255,0.05);
             padding: 15px 40px; display: flex; justify-content: space-between; align-items: center;
@@ -50,7 +53,7 @@
         .container { max-width: 1700px; margin: 40px auto; padding: 0 20px 100px 20px; }
 
         /* UPLOAD */
-        #view-upload { text-align: center; margin-top: 80px; }
+        #view-upload { text-align: center; margin-top: 80px; animation: fadeIn 0.8s ease-out; }
         .hero-title { font-family: 'Montserrat', sans-serif; font-size: 32px; font-weight: 800; margin-bottom: 30px; }
         .upload-box {
             background: rgba(30, 41, 59, 0.3); border-radius: 24px; padding: 60px;
@@ -66,8 +69,8 @@
         .switch-label { font-size: 13px; color: #cbd5e1; display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .switch-label input { accent-color: var(--brand); transform: scale(1.1); }
 
-        /* DASHBOARD ALOCACAO */
-        #view-dashboard { display: none; }
+        /* DASHBOARD ALOCAÇÃO */
+        #view-dashboard { display: none; animation: slideUp 0.6s ease-out; }
        
         .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
         .stat-card { background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
@@ -90,8 +93,8 @@
         .tag-fixo { background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 10px; }
         .tag-curinga { background: rgba(168, 85, 247, 0.2); color: #c084fc; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 10px; }
 
-        /* VIEW RODIZIO */
-        #view-rodizio { display: none; }
+        /* VIEW RODÍZIO */
+        #view-rodizio { display: none; animation: fadeIn 0.5s ease-out; }
         .rodizio-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
         .dash-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 25px; }
@@ -112,6 +115,7 @@
         .hidden { display: none !important; }
         .edit-input { background: transparent; border: 1px solid transparent; color: #fff; width: 100%; padding: 6px; font-size: 12px; border-radius: 4px; }
         .edit-input:focus { border-color: var(--brand); background: rgba(238, 77, 45, 0.1); outline: none; }
+        .input-manual { border: 1px solid rgba(245, 158, 11, 0.3) !important; background: rgba(245, 158, 11, 0.02); }
         .btn-del { background: rgba(239, 68, 68, 0.1); border: none; color: #ef4444; cursor: pointer; padding: 6px; border-radius: 4px; font-size: 12px; }
        
         .custom-popup { position: absolute; background: #1e293b; border: 1px solid #334155; width: 500px; max-height: 400px; overflow-y: auto; z-index: 9999; box-shadow: 0 20px 60px rgba(0,0,0,0.8); border-radius: 8px; font-size: 13px; }
@@ -119,6 +123,9 @@
         .popup-item:hover { background: var(--brand); color: white !important; }
         .status-free { border-left: 4px solid #10b981; }
         .badge-free { background: #10b981; color: #000; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+
+        @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+        @keyframes slideUp { from{transform:translateY(40px);opacity:0} to{transform:translateY(0);opacity:1} }
     </style>
 </head>
 <body>
@@ -135,13 +142,14 @@
 
 <div class="container" id="main-container">
    
+    <!-- TELA 1: ALOCAÇÃO -->
     <div id="view-alocacao">
         <div id="view-upload">
             <h1 class="hero-title">Motor IA de Alocação e Rodízio</h1>
             <div class="upload-box" onclick="document.getElementById('upl').click()">
                 <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-                <h2 style="margin:0 0 10px 0; font-size: 18px; font-weight:700;">Importar Planilha</h2>
-                <p style="margin:0; color:#94a3b8; font-size: 12px;">Match 100% Fiel à Coluna F</p>
+                <h2 style="margin:0 0 10px 0; font-size: 18px; font-weight:700;">Clique para Importar Planilha</h2>
+                <p style="margin:0; color:#94a3b8; font-size: 12px;">Com Match Preciso e Nuvem Firebase</p>
                 <input type="file" id="upl" accept=".xlsx" style="display:none">
             </div>
             <div id="loading-overlay"><i class="fa-solid fa-microchip"></i> PROCESSANDO DADOS...</div>
@@ -168,6 +176,7 @@
 
             <div class="table-wrap">
                 <div class="table-scroll">
+                   
                     <table id="t1">
                         <thead><tr>
                             <th style="width: 30px;">Del</th>
@@ -203,6 +212,7 @@
         </div>
     </div>
 
+    <!-- TELA 2: DASHBOARD DE RODÍZIO -->
     <div id="view-rodizio">
         <div class="rodizio-header">
             <div>
@@ -223,17 +233,20 @@
 
 </div>
 
+<!-- RODAPÉ -->
 <div class="footer-bar hidden" id="footer-actions">
     <button class="btn-copy" onclick="window.copyCombined(this)"><i class="fa-regular fa-copy"></i> Copiar ID e AT</button>
     <button class="btn-save-cloud" onclick="window.salvarNoFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> Salvar Escala na Nuvem</button>
 </div>
 
+<!-- ========================================== -->
+<!-- SCRIPT PRINCIPAL E FIREBASE V12 (MODULAR)  -->
+<!-- ========================================== -->
 <script type="module">
-    // IMPORTAÇÕES FIREBASE DO SEU PROJETO EXATO
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, serverTimestamp, writeBatch, doc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
-    // SUAS CHAVES
+    // 1. CHAVES DO SEU FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyBxzyFdum86noYdpQnldyjX4wiPB7IJEMY",
         authDomain: "spx-logistica-online.firebaseapp.com",
@@ -247,13 +260,13 @@
     const app = initializeApp(firebaseConfig);
     const dbFirestore = getFirestore(app);
 
-    // DADOS DO SISTEMA
-    let store = { allocated: [], routes: [], drivers: [], filename: "" };
-    let dbData = { dataCode: "" };
-    let driverMap = {};
-    let allDriversList = [];
+    // 2. VARIÁVEIS GLOBAIS
+    window.store = { allocated: [], routes: [], drivers: [], filename: "" };
+    window.dbData = { dataCode: "" };
+    window.driverMap = {};
+    window.allDriversList = [];
 
-    // FUNÇÕES DE UI (Atreladas ao window para o HTML poder chamar)
+    // 3. FUNÇÕES DE NAVEGAÇÃO
     window.switchView = function(view) {
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         event.currentTarget.classList.add('active');
@@ -261,7 +274,7 @@
         if(view === 'alocacao') {
             document.getElementById('view-alocacao').style.display = 'block';
             document.getElementById('view-rodizio').style.display = 'none';
-            if(store.allocated.length > 0) document.getElementById('footer-actions').classList.remove('hidden');
+            if(window.store.allocated.length > 0) document.getElementById('footer-actions').classList.remove('hidden');
         } else {
             document.getElementById('view-alocacao').style.display = 'none';
             document.getElementById('view-rodizio').style.display = 'block';
@@ -274,7 +287,6 @@
         document.getElementById('t1').classList.add('hidden');
         document.getElementById('t2').classList.add('hidden');
         document.getElementById('t3').classList.add('hidden');
-       
         document.getElementById(id).classList.remove('hidden');
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
@@ -283,7 +295,7 @@
         else document.getElementById('pull-area').style.display = 'none';
     };
 
-    // ALGORITMOS DE TEXTO E MATCH
+    // 4. LÓGICA DE TEXTO
     const cleanBasic = t => String(t||"").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
    
     function getTokens(str) {
@@ -314,11 +326,44 @@
     }
     function getDateCode(d) { return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`; }
 
-    // UPLOAD E PROCESSAMENTO EXCEL
+    function findHeaderRow(ws) {
+        let range = XLSX.utils.decode_range(ws['!ref']);
+        for(let R=range.s.r; R<= Math.min(range.e.r, 15); ++R) {
+            for(let C=range.s.c; C<=range.e.c; ++C) {
+                let cell = ws[XLSX.utils.encode_cell({r:R, c:C})];
+                if(cell && cell.v && String(cell.v).toLowerCase().includes("rota")) return R;
+            }
+        }
+        return 0;
+    }
+
+    function mapColumns(ws, rowIdx) {
+        let map = { rotaAt:'A', atTo:'B', letra:'C', clusterR:'F', litragem:'T', nome:'A', id:'C', clusterM:'E', veic:'G', rodou:'B' };
+        let range = XLSX.utils.decode_range(ws['!ref']);
+        for(let C=range.s.c; C<=range.e.c; ++C) {
+            let cell = ws[XLSX.utils.encode_cell({r:rowIdx, c:C})];
+            if(!cell || !cell.v) continue;
+            let h = String(cell.v).toLowerCase();
+            let colLet = XLSX.utils.encode_col(C);
+
+            if(h.includes("rota") && !h.includes("at")) map.rotaAt = colLet;
+            if(h.includes("at /") || h.includes("at/to")) map.atTo = colLet;
+            if(h.includes("letra") || h.includes("rota id")) map.letra = colLet;
+            if(h.includes("cidade") || h.includes("destino") || h.includes("municipio") || h.includes("endereço") || h.includes("cluster")) map.clusterR = colLet;
+            if(h.includes("litragem") || h.includes("volume") || h.includes("cubagem") || h.includes("vol.")) map.litragem = colLet;
+            if(h.includes("nome")) map.nome = colLet;
+            if(h.includes("id") && !h.includes("rota")) map.id = colLet;
+            if(h.includes("cluster") || h.includes("preferencia")) map.clusterM = colLet;
+            if(h.includes("veiculo") || h.includes("veículo")) map.veic = colLet;
+        }
+        return map;
+    }
+
+    // 5. EVENTO DE UPLOAD E LEITURA (CORRIGIDO)
     document.getElementById('upl').addEventListener('change', function(e) {
         if(!e.target.files[0]) return;
-        store = { allocated: [], routes: [], drivers: [], filename: "" };
-        driverMap = {}; allDriversList = [];
+        window.store = { allocated: [], routes: [], drivers: [], filename: "" };
+        window.driverMap = {}; window.allDriversList = [];
         document.getElementById('b-alocados').innerHTML = "";
         document.getElementById('loading-overlay').style.display = 'block';
        
@@ -333,13 +378,19 @@
                     if(sR && sM) {
                         const wsR = wb.Sheets[sR]; const wsM = wb.Sheets[sM];
                         let dateObj = getJsDate(wsM['A2']);
-                        dbData.dataCode = getDateCode(dateObj);
+                        window.dbData.dataCode = getDateCode(dateObj);
                        
-                        // Mapeamento FORÇADO como você pediu
-                        let rawRom = XLSX.utils.sheet_to_json(wsR, {header: "A", range: 1}); // Pula cabecalho
-                        let rawMot = XLSX.utils.sheet_to_json(wsM, {header: "A", range: 1});
+                        let rowR = findHeaderRow(wsR); let mapR = mapColumns(wsR, rowR);
+                        let rowM = findHeaderRow(wsM); let mapM = mapColumns(wsM, rowM);
+                       
+                        // Garante que a Coluna F seja o Alvo Visual
+                        mapR.clusterR = 'F';
 
-                        runEngine(rawRom, rawMot);
+                        // AQUI ESTAVA O ERRO NA VERSÃO ANTERIOR: RESTAURADO O range: rowR + 1
+                        let rawRom = XLSX.utils.sheet_to_json(wsR, {header: "A", range: rowR + 1});
+                        let rawMot = XLSX.utils.sheet_to_json(wsM, {header: "A", range: rowM + 1});
+
+                        runEngine(rawRom, rawMot, mapR, mapM);
                         renderScreen();
                     } else { alert("Erro: Abas não encontradas."); }
                 } catch (err) { alert("Erro: " + err.message); }
@@ -349,55 +400,61 @@
         r.readAsArrayBuffer(e.target.files[0]); e.target.value = '';
     });
 
-    function runEngine(rom, mot) {
+    // 6. MOTOR DE MATCH
+    function runEngine(rom, mot, mapR, mapM) {
         let rotasValidas = [];
+        let ignored = 0;
         let ckRod = document.getElementById('checkRodizio'); let useRodizio = ckRod ? ckRod.checked : true;
         let ckAll = document.getElementById('checkAll'); let useAll = ckAll ? ckAll.checked : true;
 
         rom.forEach(r => {
             if(!r['A']) return;
             let atCode = String(r['B']||"").toUpperCase();
-            if(atCode.includes(dbData.dataCode)) {
-                let rId = String(r['A'] || ""); if(!rId.toLowerCase().includes("rota") && rId.length > 0) rId = "Rota " + rId;
-                let letraVal = String(r['C'] || "");
-                let litVal = String(r['T'] || "-"); // Litragem cravada na T
-                let cidadeF = String(r['F'] || ""); // Cidade cravada na F
-                let regioesG = String(r['G'] || ""); // Bairros na G
+            if(atCode.includes(window.dbData.dataCode)) {
+                let rId = String(r[mapR.rotaAt] || "");
+                if(!rId.toLowerCase().includes("rota") && rId.length > 0) rId = "Rota " + rId;
+                let letraVal = String(r[mapR.letra] || "");
+                let litVal = String(r[mapR.litragem] || "-");
+                let clusterF = String(r[mapR.clusterR] || ""); // Puxa especificamente da F
 
                 rotasValidas.push({
-                    id: rId, at: String(r['B']||""), letra: letraVal,
-                    cidade: cidadeF, regioes: regioesG,
-                    clusterVisual: cidadeF, // MOSTRA SEMPRE A COLUNA F
-                    st: 'pendente', litragem: litVal
+                    raw: r, id: rId, at: r[mapR.atTo], letra: letraVal,
+                    cluster: clusterF, st: 'pendente', litragem: litVal
                 });
             }
         });
 
         let frota = [];
         mot.forEach(m => {
-            let v = String(m['G']||"").toUpperCase();
-            let nome = String(m['A']||"").trim().toUpperCase();
-            let nomeReal = String(m['A']||"").trim();
-            let id = String(m['C']||"");
-            let clusterM = String(m['E']||"");
+            let v = String(m[mapM.veic]||"").toUpperCase();
+            let nome = String(m[mapM.nome]||"").trim().toUpperCase();
+            let nomeReal = String(m[mapM.nome]||"").trim();
+            let id = String(m[mapM.id]||"");
 
             if(nome.length > 2 && !v.includes("MOTO")) {
-                driverMap[nome] = id; allDriversList.push(nomeReal);
+                window.driverMap[nome] = id;
+                window.allDriversList.push(nomeReal);
             }
 
-            if(v.includes("MOTO") || v.includes("PASSEIO")) return;
-            if(v.includes("FIORINO") || v.includes("VAN") || v.includes("VUC") || v.includes("UTILITARIO")) {
-                let isCuringa = isAll(clusterM, v);
-                frota.push({ nome: m['A'], id: m['C'], cluster: clusterM, veic: v, isAll: isCuringa, disp: true });
+            if(v.includes("MOTO") || v.includes("PASSEIO")) { ignored++; return; }
+            let aceito = false;
+            if(v.includes("FIORINO") || v.includes("VAN") || v.includes("VUC") || v.includes("UTILITARIO") || v.includes("ENTREGA")) aceito = true;
+
+            if(aceito && String(m[mapM.clusterM]).length > 1) {
+                let isCuringa = isAll(String(m[mapM.clusterM]||""), v);
+                frota.push({
+                    nome: m[mapM.nome], id: m[mapM.id], cluster: String(m[mapM.clusterM]||""),
+                    veic: v, rodou: String(m[mapM.rodou]||"Não"),
+                    isAll: isCuringa, disp: true
+                });
             }
         });
 
         if(useRodizio) shuffle(frota);
 
-        // O MATCH VERIFICA F E G PARA ENCONTRAR O MOTORISTA
-        const checkDeepMatch = (motCluster, cidadeRot, regioesRot) => {
+        const checkDeepMatch = (motCluster, rotCluster) => {
             let motTokens = getTokens(motCluster);
-            let rotTokens = getTokens(cidadeRot + " " + regioesRot);
+            let rotTokens = getTokens(rotCluster);
             for (let mToken of motTokens) {
                 if (rotTokens.includes(mToken)) return mToken;
             }
@@ -408,22 +465,25 @@
             rotasValidas.forEach(r => {
                 if(r.st === 'ok') return;
                 for(let m of frota) {
-                    if(!m.disp || m.isAll !== forceAll) continue;
-                    let match = false; let type = "";
+                    if(!m.disp) continue;
+                    if(m.isAll !== forceAll) continue;
+                   
+                    let match = false; let type = ""; let finalReason = "";
                    
                     if(forceAll) {
-                        match = true; type = "Curinga";
+                        match = true; type = "Curinga"; finalReason = r.cluster;
                     } else {
-                        let cMatch = checkDeepMatch(m.cluster, r.cidade, r.regioes);
-                        if(cMatch) { match = true; type = "Fixo"; }
+                        let cMatch = checkDeepMatch(m.cluster, r.cluster);
+                        if(cMatch) {
+                            match = true; type = "Fixo"; finalReason = cMatch;
+                        }
                     }
 
                     if(match) {
-                        store.allocated.push({
+                        window.store.allocated.push({
                             rota: r.id, at: r.at, nome: m.nome, id: m.id,
-                            veic: m.veic, letra: r.letra,
-                            cluster: r.clusterVisual, // SEMPRE EXIBE A COLUNA F
-                            litragem: r.litragem, matchType: type
+                            veic: m.veic, letra: r.letra, rodou: m.rodou,
+                            cluster: finalReason, litragem: r.litragem, matchType: type
                         });
                         m.disp = false; r.st = 'ok'; break;
                     }
@@ -431,39 +491,48 @@
             });
         };
 
-        runMatch(false); // 1. Fixos
-        if(useAll) runMatch(true); // 2. Curingas
+        runMatch(false); // Fixos
+        if(useAll) runMatch(true); // Curingas
 
         rotasValidas.forEach(r => {
-            if(r.st !== 'ok') store.routes.push({ rota: r.id, at: r.at, letra: r.letra, cluster: r.clusterVisual, litragem: r.litragem });
+            if(r.st !== 'ok') window.store.routes.push({ rota: r.id, at: r.at, letra: r.letra, cluster: r.cluster, litragem: r.litragem });
         });
        
         frota.forEach(m => {
-            if(m.disp) store.drivers.push({ nome: m.nome, id: m.id, veic: m.veic, cluster: m.cluster });
+            if(m.disp) window.store.drivers.push({ nome: m.nome, id: m.id, veic: m.veic, cluster: m.cluster });
         });
 
-        document.getElementById('v-alloc').innerText = store.allocated.length;
-        document.getElementById('v-pend').innerText = store.routes.length;
-        document.getElementById('v-free').innerText = store.drivers.length;
+        document.getElementById('v-alloc').innerText = window.store.allocated.length;
+        document.getElementById('v-pend').innerText = window.store.routes.length;
+        document.getElementById('v-free').innerText = window.store.drivers.length;
+        document.getElementById('v-ign').innerText = ignored;
     }
 
+    // 7. RENDERIZAÇÃO
     function renderScreen() {
         document.getElementById('view-upload').style.display = 'none';
         document.getElementById('view-dashboard').style.display = 'block';
+        document.getElementById('footer-actions').style.display = 'flex';
         document.getElementById('footer-actions').classList.remove('hidden');
 
         let h1 = "";
-        store.allocated.forEach((r,i) => {
-            let mTag = r.matchType === "Fixo" ? `<span class="tag-fixo">🎯 Fixo</span>` : r.matchType === "Curinga" ? `<span class="tag-curinga">🃏 Curinga</span>` : `<span style="color:#64748b; font-size:10px;">Manual</span>`;
+        window.store.allocated.forEach((r,i) => {
+            let cls = r.nome === "" ? "edit-input input-manual" : "edit-input";
            
+            let mTag = "";
+            if(r.matchType === "Fixo") mTag = `<span class="tag-fixo">🎯 Fixo</span>`;
+            else if(r.matchType === "Curinga") mTag = `<span class="tag-curinga">🃏 Curinga</span>`;
+            else mTag = `<span style="color:#64748b; font-size:10px;">Manual</span>`;
+
             h1 += `<tr>
                 <td style="text-align:center"><button class="btn-del" onclick="window.delRow(${i})"><i class="fa-solid fa-trash"></i></button></td>
                 <td style="text-align:center; color:#64748b; font-size:10px;">${i+1}</td>
-                <td>${r.rota}</td><td>${r.at}</td><td style="color:#a5f3fc;">${r.litragem}</td>
+                <td>${r.rota}</td><td>${r.at}</td>
+                <td style="color:#a5f3fc; text-align:center;">${r.litragem || '-'}</td>
                 <td style="position:relative;">
-                    <input class="edit-input" value="${r.nome}" onclick="window.onInputName(${i}, this)" oninput="window.onInputName(${i}, this)" onchange="window.onNameChange(${i}, this.value)" autocomplete="off">
+                    <input class="${cls}" value="${r.nome}" onclick="window.onInputName(${i}, this)" oninput="window.onInputName(${i}, this)" onchange="window.onNameChange(${i}, this.value)" autocomplete="off">
                 </td>
-                <td><input class="edit-input" value="${r.id}" readonly></td>
+                <td><input class="${cls}" id="id-${i}" value="${r.id}" readonly></td>
                 <td>${r.veic}</td><td>${r.letra}</td>
                 <td style="text-align:center;">${mTag}</td>
                 <td style="color:#10b981; font-weight:700;">${r.cluster}</td>
@@ -472,24 +541,26 @@
         document.getElementById('b-alocados').innerHTML = h1;
 
         let h2 = "";
-        store.routes.forEach(r => { h2 += `<tr><td>${r.rota}</td><td>${r.at}</td><td>${r.litragem}</td><td>${r.letra}</td><td style="color:#f59e0b;">${r.cluster}</td></tr>`; });
+        window.store.routes.forEach(r => { h2 += `<tr><td>${r.rota}</td><td>${r.at}</td><td>${r.litragem}</td><td>${r.letra}</td><td style="color:#f59e0b;">${r.cluster}</td></tr>`; });
         document.getElementById('b-rotas').innerHTML = h2;
 
         let h3 = "";
-        store.drivers.forEach(m => { h3 += `<tr><td>${m.nome}</td><td>${m.id}</td><td>${m.veic}</td><td>${m.cluster}</td></tr>`; });
+        window.store.drivers.forEach(m => { h3 += `<tr><td>${m.nome}</td><td>${m.id}</td><td>${m.veic}</td><td>${m.cluster}</td></tr>`; });
         document.getElementById('b-mot').innerHTML = h3;
     }
 
-    function checkFree(name) { return store.drivers.some(d => d.nome.toUpperCase() === name.toUpperCase()); }
+    // 8. FUNÇÕES INTERATIVAS
+    function checkFree(name) { return window.store.drivers.some(d => d.nome.toUpperCase() === name.toUpperCase()); }
 
     window.onNameChange = function(idx, val) {
-        let cleanName = val.trim().toUpperCase(); let oldName = store.allocated[idx].nome;
+        let cleanName = val.trim().toUpperCase(); let oldName = window.store.allocated[idx].nome;
         if(oldName && oldName.toUpperCase() !== cleanName) window.recycleDriver(oldName);
-        store.allocated[idx].nome = val;
-        if(cleanName === "") { store.allocated[idx].id = ""; }
+        window.store.allocated[idx].nome = val;
+       
+        if(cleanName === "") { window.store.allocated[idx].id = ""; }
         else {
-            if(driverMap[cleanName]) { store.allocated[idx].id = driverMap[cleanName]; window.consumeFreeDriver(cleanName); }
-            else { store.allocated[idx].id = ""; }
+            if(window.driverMap[cleanName]) { window.store.allocated[idx].id = window.driverMap[cleanName]; window.consumeFreeDriver(cleanName); }
+            else { window.store.allocated[idx].id = ""; }
         }
         renderScreen();
     }
@@ -497,12 +568,14 @@
     window.onInputName = function(idx, inp) {
         let val = inp.value; window.closeAllLists();
         let a = document.createElement("DIV"); a.className = "custom-popup";
-        a.style.top = (inp.offsetTop + inp.offsetHeight) + "px"; a.style.left = inp.offsetLeft + "px"; a.style.width = "400px";
+        a.style.top = (inp.offsetTop + inp.offsetHeight) + "px"; a.style.left = inp.offsetLeft + "px";
         inp.parentNode.appendChild(a);
 
         let matches = [];
-        if(!val) { matches = allDriversList; } else { matches = allDriversList.filter(d => d.toUpperCase().includes(val.toUpperCase())); }
-        matches.sort((a,b) => { let freeA = checkFree(a)?1:0; let freeB = checkFree(b)?1:0; return freeB - freeA; });
+        if(!val) { matches = window.allDriversList; }
+        else { matches = window.allDriversList.filter(d => d.toUpperCase().includes(val.toUpperCase())); }
+
+        matches.sort((a,b) => { let freeA = checkFree(a) ? 1 : 0; let freeB = checkFree(b) ? 1 : 0; return freeB - freeA; });
 
         let count = 0;
         for(let i=0; i<matches.length; i++) {
@@ -513,9 +586,9 @@
            
             b.addEventListener("mousedown", function(e) {
                 e.preventDefault();
-                let oldName = store.allocated[idx].nome; if(oldName) window.recycleDriver(oldName);
-                inp.value = sName; store.allocated[idx].nome = sName;
-                let k = sName.trim().toUpperCase(); if(driverMap[k]) store.allocated[idx].id = driverMap[k];
+                let oldName = window.store.allocated[idx].nome; if(oldName) window.recycleDriver(oldName);
+                inp.value = sName; window.store.allocated[idx].nome = sName;
+                let k = sName.trim().toUpperCase(); if(window.driverMap[k]) window.store.allocated[idx].id = window.driverMap[k];
                 window.consumeFreeDriver(k); renderScreen(); window.closeAllLists();
             });
             a.appendChild(b);
@@ -525,28 +598,28 @@
 
     window.recycleDriver = function(name) {
         if(!name || name.length < 2) return; let key = name.toUpperCase();
-        if(driverMap[key]) {
-            let exists = store.drivers.some(d => d.nome.toUpperCase() === key);
-            if(!exists) { store.drivers.push({ nome: name, id: driverMap[key], veic: "Reciclado", cluster: "Reciclado" }); }
+        if(window.driverMap[key]) {
+            let exists = window.store.drivers.some(d => d.nome.toUpperCase() === key);
+            if(!exists) { window.store.drivers.push({ nome: name, id: window.driverMap[key], veic: "Reciclado", cluster: "Reciclado" }); }
         }
     }
 
     window.consumeFreeDriver = function(nameKey) {
-        let freeIdx = store.drivers.findIndex(d => d.nome.toUpperCase() === nameKey);
-        if(freeIdx > -1) { store.drivers.splice(freeIdx, 1); }
+        let freeIdx = window.store.drivers.findIndex(d => d.nome.toUpperCase() === nameKey);
+        if(freeIdx > -1) { window.store.drivers.splice(freeIdx, 1); }
     }
 
     window.closeAllLists = function() { let x = document.getElementsByClassName("custom-popup"); for (let i = 0; i < x.length; i++) x[i].parentNode.removeChild(x[i]); }
     document.addEventListener("mousedown", function(e) { if(!e.target.classList.contains('edit-input') && !e.target.closest('.custom-popup')) { window.closeAllLists(); } });
 
     window.delRow = function(idx) {
-        let row = store.allocated[idx]; if(row.nome) window.recycleDriver(row.nome);
-        store.allocated.splice(idx, 1); renderScreen();
-        document.getElementById('v-alloc').innerText = store.allocated.length;
+        let row = window.store.allocated[idx]; if(row.nome) window.recycleDriver(row.nome);
+        window.store.allocated.splice(idx, 1); renderScreen();
+        document.getElementById('v-alloc').innerText = window.store.allocated.length;
     };
 
     window.copyCombined = function(btn) {
-        let text = store.allocated.map(r => `${r.id || ""}\t${r.at || ""}`).join('\n');
+        let text = window.store.allocated.map(r => `${r.id || ""}\t${r.at || ""}`).join('\n');
         navigator.clipboard.writeText(text).then(() => {
             let original = btn.innerHTML; btn.innerHTML = "<i class='fa-solid fa-check'></i> Copiado!";
             setTimeout(() => { btn.innerHTML = original; }, 2000);
@@ -554,21 +627,20 @@
     }
 
     window.pullRemainingRoutes = function() {
-        if(store.routes.length === 0) return alert("Não há rotas sobrando.");
-        let pulled = store.routes.map(r => ({ rota: r.rota, at: r.at, nome: "", id: "", veic: "", letra: r.letra, cluster: r.cluster, litragem: r.litragem, matchType: "Manual" }));
-        store.allocated = [...store.allocated, ...pulled]; store.routes = []; renderScreen();
-        document.getElementById('v-alloc').innerText = store.allocated.length;
+        if(window.store.routes.length === 0) return alert("Não há rotas.");
+        let pulled = window.store.routes.map(r => ({ rota: r.rota, at: r.at, nome: "", id: "", veic: "", letra: r.letra, cluster: r.cluster, litragem: r.litragem, matchType: "Manual" }));
+        window.store.allocated = [...window.store.allocated, ...pulled]; window.store.routes = []; renderScreen();
+        document.getElementById('v-alloc').innerText = window.store.allocated.length;
         document.getElementById('v-pend').innerText = 0;
     }
 
-    // ==========================================
-    // FUNÇÕES NUVEM (FIREBASE)
-    // ==========================================
+    // 9. FUNÇÕES DE NUVEM (FIREBASE)
     window.salvarNoFirebase = async function() {
-        if(store.allocated.length === 0) return alert("Não há rotas.");
+        if(window.store.allocated.length === 0) return alert("Não há rotas para salvar.");
+       
         const btn = document.querySelector('.btn-save-cloud');
         let oldHtml = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando no Firebase...';
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando na Nuvem...';
         btn.style.pointerEvents = 'none';
 
         try {
@@ -577,7 +649,7 @@
             const batch = writeBatch(dbFirestore);
            
             let count = 0;
-            store.allocated.forEach(al => {
+            window.store.allocated.forEach(al => {
                 if(!al.id || al.id === "") return;
                 let novoDoc = doc(historicoRef);
                 batch.set(novoDoc, {
@@ -619,7 +691,7 @@
             let arrayMotoristas = Object.keys(contagem).map(nome => ({ nome: nome, id: contagem[nome].id, qtd: contagem[nome].qtd }));
             arrayMotoristas.sort((a, b) => b.qtd - a.qtd);
 
-            if(arrayMotoristas.length === 0) { loading.innerHTML = "Nenhuma escala no banco."; return; }
+            if(arrayMotoristas.length === 0) { loading.innerHTML = "Nenhuma escala salva no banco de dados."; return; }
 
             let html = "";
             arrayMotoristas.forEach(mot => {
