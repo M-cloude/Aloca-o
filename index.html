@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alocação de Utilitários (Firebase Semanal Otimizado)</title>
+    <title>Alocação de Utilitários (Firebase + Sistema de Rejeição)</title>
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -52,7 +52,7 @@
         }
         .btn-top-back:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
 
-        .container { max-width: 1700px; margin: 40px auto; padding: 0 20px 100px 20px; }
+        .container { max-width: 1750px; margin: 40px auto; padding: 0 20px 100px 20px; }
 
         /* UPLOAD */
         #view-upload { display: block; text-align: center; margin-top: 80px; animation: fadeIn 0.8s ease-out; }
@@ -123,9 +123,17 @@
         .row-dup { background-color: rgba(30, 58, 138, 0.3) !important; box-shadow: inset 3px 0 0 #00ffff; }
         .row-dup td { color: #a5f3fc; text-shadow: 0 0 5px rgba(0, 255, 255, 0.3); }
 
-        /* TAGS DE MATCH */
+        /* TAGS DE MATCH E CHECKBOX */
         .tag-fixo { background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 10px; border: 1px solid rgba(16, 185, 129, 0.3); }
         .tag-curinga { background: rgba(168, 85, 247, 0.2); color: #c084fc; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 10px; border: 1px solid rgba(168, 85, 247, 0.3); }
+       
+        /* NOVO: ESTILOS PARA REJEIÇÃO */
+        .checkbox-reject { accent-color: #ff003c; width: 16px; height: 16px; cursor: pointer; }
+        .text-neon-red {
+            color: #ff003c !important;
+            text-shadow: 0 0 10px rgba(255, 0, 60, 0.8), 0 0 20px rgba(255, 0, 60, 0.4);
+            font-weight: 900; font-size: 15px;
+        }
 
         /* FOOTER */
         .footer-bar {
@@ -145,7 +153,7 @@
 
         .btn-add-driver {
             background: #10b981; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: 700; font-size: 12px;
-            cursor: pointer; display: flex; align-items: center; gap: 8px; text-transform: uppercase margin-right: 15px;
+            cursor: pointer; display: flex; align-items: center; gap: 8px; text-transform: uppercase; margin-right: 15px;
         }
         .btn-add-driver:hover { background: #059669; transform: translateY(-2px); }
 
@@ -232,6 +240,14 @@
             <label class="switch-label"><input type="checkbox" id="checkRodizio" checked> Rodízio Aleatório</label>
             <label class="switch-label"><input type="checkbox" id="checkAll" checked> Utilizar Curingas (All)</label>
         </div>
+       
+        <!-- NOVO: BOTÃO DE ACESSO DIRETO AO HISTÓRICO -->
+        <div style="text-align: center; margin-top: 40px;">
+            <button class="btn-top-back" style="display:inline-flex; font-size: 13px; padding: 12px 25px; border-color: var(--brand); color: #fff;" onclick="viewGlobalHistory()">
+                <i class="fa-solid fa-calendar-days"></i> Consultar Histórico Geral (Online)
+            </button>
+        </div>
+       
         <div id="debug-log" style="margin-top:20px; color:#64748b; font-family:monospace; font-size:10px;"></div>
     </div>
 
@@ -256,10 +272,11 @@
                     <thead><tr>
                         <th style="width: 40px; text-align:center;">Del</th>
                         <th style="width: 30px; text-align:center;">#</th>
+                        <th style="width: 60px; text-align:center; color:#ef4444;">Recusou</th>
                         <th style="width: 70px;">Rota AT</th>
                         <th style="width: 100px;">AT / TO</th>
                         <th style="width: 60px; color: #a5f3fc;">Litragem</th>
-                        <th style="width: 380px;">Nome Motorista (Popup Auto)</th>
+                        <th style="width: 360px;">Nome Motorista (Popup Auto)</th>
                         <th style="width: 80px;">ID</th>
                         <th>Veículo</th>
                         <th style="color: #fbbf24;">Letra</th>
@@ -330,7 +347,6 @@
         appId: "1:347761759499:web:c257117806c2496fe77e0e"
     };
 
-    // Inicializa o Firebase
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     // =====================================================================
@@ -540,9 +556,8 @@
                         store.allocated.push({
                             rota: r.id, at: r.at, nome: m.nome, id: m.id,
                             veic: m.veic, letra: r.letra, rodou: m.rodou,
-                            cluster: r.cluster,
-                            litragem: r.litragem,
-                            matchType: type
+                            cluster: r.cluster, litragem: r.litragem, matchType: type,
+                            rejected: false // Inicializa como falso
                         });
                         m.disp = false; r.st = 'ok'; break;
                     }
@@ -590,30 +605,38 @@
     }
 
     // =====================================================================
-    // LÓGICA DE HISTÓRICO - FIREBASE OTIMIZADO (SEM TRAVAMENTOS)
+    // LÓGICA DE SALVAMENTO NO FIREBASE
     // =====================================================================
-    window.saveAndRenderHistory = async function() {
-        if (!db.dataCode) return;
+    window.saveDayToFirebase = function() {
+        if (!db.dataCode || store.allocated.length === 0) return; // Só salva se houver dados importados
 
-        // 1. Mapeia quem está alocado HOJE nesta tela
         let allocatedToday = {};
         store.allocated.forEach(a => {
             let nome = a.nome.trim().toUpperCase();
             if (nome && nome.length > 2 && nome !== "MANUAL") {
-                allocatedToday[nome] = {
-                    id: a.id,
-                    count: (allocatedToday[nome]?.count || 0) + 1
-                };
+                if (!allocatedToday[nome]) allocatedToday[nome] = { id: a.id, count: 0, rejected: false };
+               
+                if (a.rejected) {
+                    allocatedToday[nome].rejected = true;
+                } else {
+                    allocatedToday[nome].count += 1;
+                }
             }
         });
-
-        // 2. SALVA NO FIREBASE: Salva/sobrescreve de forma assíncrona o dia atual
+       
+        // Salva silenciosamente no Firebase
         database.ref('shopee_history/' + db.dataCode).set(allocatedToday);
+    }
 
-        // 3. Descobre as datas da semana (Segunda a Domingo) baseada em A2
-        let refYear = parseInt(db.dataCode.substring(0,4));
-        let refMonth = parseInt(db.dataCode.substring(4,6)) - 1;
-        let refDay = parseInt(db.dataCode.substring(6,8));
+    // =====================================================================
+    // LÓGICA DE LEITURA DO HISTÓRICO ONLINE (EVITA TRAVAMENTO)
+    // =====================================================================
+    window.loadAndRenderHistory = async function(baseDateCode) {
+        if (!baseDateCode) return;
+
+        let refYear = parseInt(baseDateCode.substring(0,4));
+        let refMonth = parseInt(baseDateCode.substring(4,6)) - 1;
+        let refDay = parseInt(baseDateCode.substring(6,8));
         let refDate = new Date(refYear, refMonth, refDay);
        
         let dayOfWeek = refDate.getDay();
@@ -631,51 +654,49 @@
            
             let dCode = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
             let dDisplay = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
-           
             weekDates.push(dCode);
            
-            let isToday = (dCode === db.dataCode) ? 'color: #fff; border-bottom: 2px solid var(--brand);' : '';
+            let isToday = (dCode === baseDateCode) ? 'color: #fff; border-bottom: 2px solid var(--brand);' : '';
             theadHtml += `<th style="text-align:center; ${isToday}">${weekHeaders[i]}<br><span style="font-size:9px; color:#94a3b8;">${dDisplay}</span></th>`;
         }
         theadHtml += `<th style="color:var(--brand); text-align:center;">Total</th></tr>`;
         document.getElementById('h-historico').innerHTML = theadHtml;
 
-        // Mostra status de carregamento para o usuário
         document.getElementById('b-historico').innerHTML = `<tr><td colspan="10" style="text-align:center; color: var(--brand); font-weight:bold; padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> Sincronizando com Banco de Dados...</td></tr>`;
 
-        // 4. BUSCA NO FIREBASE: Lê APENAS os 7 dias exatos.
-        // Isso evita baixar a base inteira e corta o travamento pela raiz.
+        // Busca apenas as 7 datas exatas
         let historyFromFirebase = {};
         try {
-            // Cria 7 requisições individuais super rápidas
             let fetchPromises = weekDates.map(dCode => database.ref('shopee_history/' + dCode).once('value'));
             let snapshots = await Promise.all(fetchPromises);
            
             snapshots.forEach((snap, index) => {
-                let dCode = weekDates[index];
                 if (snap.exists()) {
-                    historyFromFirebase[dCode] = snap.val();
+                    historyFromFirebase[weekDates[index]] = snap.val();
                 }
             });
         } catch (error) {
-            console.error("Erro de conexão com Firebase:", error);
-            document.getElementById('b-historico').innerHTML = `<tr><td colspan="10" style="text-align:center; color: #ef4444;">Erro ao carregar histórico. Verifique o console.</td></tr>`;
+            console.error("Erro Firebase:", error);
+            document.getElementById('b-historico').innerHTML = `<tr><td colspan="10" style="text-align:center; color: #ef4444;">Erro ao carregar histórico. Verifique a conexão.</td></tr>`;
             return;
         }
 
-        // 5. Agrupa os dados da semana puxados do Firebase por motorista
+        // Agrupa Dados
         let weekData = {};
         weekDates.forEach(dCode => {
             let dayData = historyFromFirebase[dCode] || {};
             Object.keys(dayData).forEach(nome => {
                 if (!weekData[nome]) weekData[nome] = { id: dayData[nome].id, days: {}, total: 0 };
-                let count = dayData[nome].count;
-                weekData[nome].days[dCode] = count;
+               
+                let count = dayData[nome].count || 0;
+                let isRejected = dayData[nome].rejected || false;
+               
+                weekData[nome].days[dCode] = { count: count, rejected: isRejected };
                 weekData[nome].total += count;
             });
         });
 
-        // 6. Ordena e desenha a tabela
+        // Ordena Tabela
         let sortedDrivers = Object.keys(weekData)
             .map(nome => ({ nome, id: weekData[nome].id, days: weekData[nome].days, total: weekData[nome].total }))
             .sort((a, b) => b.total - a.total);
@@ -687,9 +708,15 @@
                 <td>${d.id}</td>`;
            
             weekDates.forEach(dCode => {
-                let val = d.days[dCode] || '-';
-                let cellColor = val !== '-' ? 'color: #10b981; font-weight: bold;' : 'color: #475569;';
-                tbodyHtml += `<td style="text-align:center; ${cellColor}">${val}</td>`;
+                let dayObj = d.days[dCode];
+                if (!dayObj) {
+                    tbodyHtml += `<td style="text-align:center; color: #475569;">-</td>`;
+                } else if (dayObj.rejected) {
+                    // Célula Vermelha Neon indicando perda da rota
+                    tbodyHtml += `<td style="text-align:center;" class="text-neon-red">0</td>`;
+                } else {
+                    tbodyHtml += `<td style="text-align:center; color: #10b981; font-weight: bold;">${dayObj.count}</td>`;
+                }
             });
 
             tbodyHtml += `<td style="color:var(--brand); font-size:14px; font-weight:800; text-align:center;">${d.total}</td>
@@ -698,6 +725,42 @@
        
         document.getElementById('b-historico').innerHTML = tbodyHtml || `<tr><td colspan="10" style="text-align:center;">Nenhum dado encontrado no Firebase para esta semana.</td></tr>`;
     }
+
+    // =====================================================================
+    // ACESSO DIRETO AO HISTÓRICO GERAL DA TELA INICIAL
+    // =====================================================================
+    window.viewGlobalHistory = function() {
+        document.getElementById('view-upload').style.display = 'none';
+        document.getElementById('view-dashboard').style.display = 'block';
+        document.getElementById('btn-top-back').style.display = 'flex';
+       
+        // Esconde tudo que não é o histórico
+        document.querySelector('.stats-bar').style.display = 'none';
+        document.getElementById('pull-area').style.display = 'none';
+        document.getElementById('footer-actions').classList.add('hidden');
+        document.querySelectorAll('table').forEach(t => t.classList.add('hidden'));
+        document.getElementById('t4').classList.remove('hidden');
+       
+        // Esconde as abas de trabalho e deixa só o botão do histórico ativo
+        document.querySelectorAll('.tab-btn').forEach(b => b.style.display = 'none');
+        let histBtn = document.querySelector('.tab-nav button:nth-child(4)');
+        histBtn.style.display = 'block';
+        histBtn.classList.add('active');
+        document.getElementById('file-info').innerHTML = `Visualizando: <b>Histórico Geral</b>`;
+
+        // Pega a data de HOJE para basear a semana
+        let today = new Date();
+        let todayCode = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+       
+        loadAndRenderHistory(todayCode);
+    }
+
+    // --- INTERAÇÕES DE REJEIÇÃO ---
+    window.toggleReject = function(idx, checked) {
+        store.allocated[idx].rejected = checked;
+        saveDayToFirebase();
+        loadAndRenderHistory(db.dataCode);
+    };
 
     // --- UI ---
     function updateStats(ign) {
@@ -711,7 +774,7 @@
         if(store.routes.length === 0) return alert("Não há rotas sobrando.");
         let pulled = store.routes.map(r => ({
             rota: r.rota, at: r.at, nome: "", id: "",
-            veic: "", letra: r.letra, rodou: "", cluster: r.cluster, litragem: r.litragem, matchType: "Manual"
+            veic: "", letra: r.letra, rodou: "", cluster: r.cluster, litragem: r.litragem, matchType: "Manual", rejected: false
         }));
         store.allocated = [...store.allocated, ...pulled];
         store.routes = [];
@@ -747,6 +810,9 @@
             h1 += `<tr class="${rowClass}">
                 <td style="text-align:center"><button class="btn-del" onclick="delRow(${i})"><i class="fa-solid fa-trash"></i></button></td>
                 <td style="text-align:center; color:#64748b; font-size:10px;">${i+1}</td>
+                <td style="text-align:center;">
+                    <input type="checkbox" class="checkbox-reject" ${r.rejected ? 'checked' : ''} onchange="toggleReject(${i}, this.checked)">
+                </td>
                 <td>${r.rota}</td><td>${r.at}</td>
                 <td style="color:#a5f3fc; text-align:center;">${r.litragem || '-'}</td>
                 <td style="position:relative;">
@@ -758,9 +824,7 @@
                 </td>
                 <td><input class="${cls}" id="id-${i}" value="${r.id}" readonly></td>
                 <td>${r.veic}</td><td>${r.letra}</td>
-               
                 <td style="text-align:center;">${mTag}</td>
-               
                 <td style="color:#10b981; font-weight:700;">${r.cluster}</td>
             </tr>`;
         });
@@ -774,7 +838,8 @@
         store.drivers.forEach(m => { h3 += `<tr><td>${m.nome}</td><td>${m.id}</td><td>${m.veic}</td><td>${m.cluster}</td></tr>`; });
         document.getElementById('b-mot').innerHTML = h3;
 
-        saveAndRenderHistory();
+        saveDayToFirebase();
+        loadAndRenderHistory(db.dataCode);
     }
 
     function checkFree(name) { return store.drivers.some(d => d.nome.toUpperCase() === name.toUpperCase()); }
@@ -787,6 +852,7 @@
        
         if(cleanName === "") {
             store.allocated[idx].id = "";
+            store.allocated[idx].rejected = false; // Reseta a rejeição se apagar o nome
         } else {
             if(driverMap[cleanName]) {
                 store.allocated[idx].id = driverMap[cleanName];
@@ -836,6 +902,7 @@
 
                 inp.value = sName;
                 store.allocated[idx].nome = sName;
+                store.allocated[idx].rejected = false; // Reseta rejeição ao mudar nome
                
                 let k = sName.trim().toUpperCase();
                 if(driverMap[k]) store.allocated[idx].id = driverMap[k];
