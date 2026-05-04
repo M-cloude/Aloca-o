@@ -1,150 +1,239 @@
-
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 3000; display: flex; justify-content: center; align-items: center; }
-        .modal-box { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 30px; width: 400px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .modal-input { width: 100%; background: #0f172a; border: 1px solid #334155; color: #fff; padding: 10px; margin-bottom: 10px; border-radius: 6px; box-sizing: border-box; }
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema SPX - Alocação e Rodízio</title>
+   
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+   
+    <style>
+        :root {
+            --brand: #EE4D2D;
+            --bg-body: #020617;
+            --bg-card: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #1e293b;
+            --success: #10b981;
+            --glass: rgba(15, 23, 42, 0.9);
+        }
        
-        /* DESIGN DASHBOARD RODIZIO (DENTRO DA TABELA) */
-        .dash-list { list-style: none; padding: 20px; margin: 0; }
-        .dash-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.02); margin-bottom: 5px; border-radius: 8px; }
-        .dash-name { font-weight: 600; font-size: 14px; color: #fff; }
-        .dash-count { background: rgba(238, 77, 45, 0.15); color: var(--brand); padding: 5px 12px; border-radius: 20px; font-weight: 800; font-size: 12px; border: 1px solid rgba(238,77,45,0.3); }
+        * { box-sizing: border-box; }
+       
+        body {
+            font-family: 'Inter', sans-serif; background-color: var(--bg-body);
+            margin: 0; padding: 0; color: var(--text-main); min-height: 100vh;
+            background-image: radial-gradient(at 50% 0%, #1a0806 0%, #020617 80%);
+            background-attachment: fixed;
+        }
+       
+        .top-bar {
+            background: var(--glass); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 15px 40px; display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .logo h1 { font-family: 'Montserrat', sans-serif; font-size: 18px; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+        .text-shopee { color: var(--brand); font-weight: 800; }
+       
+        .main-nav { display: flex; gap: 20px; }
+        .nav-btn {
+            background: transparent; color: #94a3b8; border: none; font-size: 13px; font-weight: 600;
+            cursor: pointer; padding: 8px 16px; border-radius: 8px; transition: 0.3s;
+            text-transform: uppercase; letter-spacing: 1px; outline: none;
+        }
+        .nav-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        .nav-btn.active { color: #fff; background: rgba(238, 77, 45, 0.2); border: 1px solid rgba(238, 77, 45, 0.5); }
 
-        @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
-        @keyframes slideUp { from{transform:translateY(40px);opacity:0} to{transform:translateY(0);opacity:1} }
+        .container { max-width: 1700px; margin: 40px auto; padding: 0 20px 100px 20px; }
+
+        /* UPLOAD */
+        #view-upload { text-align: center; margin-top: 80px; }
+        .hero-title { font-family: 'Montserrat', sans-serif; font-size: 32px; font-weight: 800; margin-bottom: 30px; }
+        .upload-box {
+            background: rgba(30, 41, 59, 0.3); border-radius: 24px; padding: 60px;
+            border: 1px solid rgba(255,255,255,0.05); cursor: pointer; max-width: 600px; margin: 0 auto;
+            transition: 0.4s; backdrop-filter: blur(10px);
+        }
+        .upload-box:hover { border-color: var(--brand); transform: translateY(-5px); }
+        .upload-icon { font-size: 48px; color: var(--brand); margin-bottom: 20px; }
+
+        #loading-overlay { display: none; margin-top: 20px; color: var(--brand); font-weight: bold; }
+
+        .settings-area { margin-top: 30px; display: flex; justify-content: center; gap: 30px; }
+        .switch-label { font-size: 13px; color: #cbd5e1; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .switch-label input { accent-color: var(--brand); transform: scale(1.1); }
+
+        /* DASHBOARD ALOCACAO */
+        #view-dashboard { display: none; }
+       
+        .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
+        .stat-val { font-size: 24px; font-weight: 700; font-family: 'Montserrat', sans-serif; }
+        .stat-lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-top: 5px; }
+
+        .tab-nav { display: flex; gap: 5px; margin-bottom: 0; }
+        .tab-btn { padding: 12px 25px; background: var(--bg-card); border: 1px solid var(--border); border-bottom: none; color: var(--text-muted); border-radius: 10px 10px 0 0; cursor: pointer; font-weight: 600; font-size: 11px; text-transform: uppercase; }
+        .tab-btn.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+       
+        .table-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 0 12px 12px 12px; padding: 0; overflow: hidden; height: 650px; display: flex; flex-direction: column; }
+        .table-scroll { overflow: auto; flex-grow: 1; position: relative; }
+       
+        table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+        th { position: sticky; top: 0; background: #0b1120; color: #94a3b8; padding: 15px 12px; text-align: left; font-size: 10px; text-transform: uppercase; border-bottom: 2px solid var(--border); z-index: 10; font-weight: 700; }
+        td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: #e2e8f0; vertical-align: middle; }
+        tr:hover { background: rgba(238, 77, 45, 0.05) !important; }
+        .row-dup { background-color: rgba(30, 58, 138, 0.3) !important; box-shadow: inset 3px 0 0 #00ffff; }
+
+        .tag-fixo { background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 10px; }
+        .tag-curinga { background: rgba(168, 85, 247, 0.2); color: #c084fc; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 10px; }
+
+        /* VIEW RODIZIO */
+        #view-rodizio { display: none; }
+        .rodizio-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .dash-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 25px; }
+        .leaderboard-list { list-style: none; padding: 0; margin: 0; }
+        .leaderboard-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border); }
+        .driver-info { display: flex; flex-direction: column; }
+        .driver-name { font-weight: 600; color: #fff; font-size: 14px; }
+        .driver-id { font-size: 11px; color: var(--text-muted); }
+        .badge-count { background: rgba(238, 77, 45, 0.1); color: var(--brand); border: 1px solid rgba(238, 77, 45, 0.3); padding: 5px 12px; border-radius: 20px; font-weight: 800; font-size: 12px; }
+
+        /* FOOTER */
+        .footer-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); padding: 15px 30px; border-top: 1px solid var(--border); display: flex; justify-content: center; align-items: center; z-index: 2000; gap: 15px; }
+        .btn-copy { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer; text-transform: uppercase; }
+        .btn-save-cloud { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+        .btn-pull-area { padding: 15px; background: #0b1120; border-top: 1px solid var(--border); text-align: center; }
+        .btn-pull { background: rgba(245, 158, 11, 0.1); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); padding: 10px 25px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 11px; width: 100%; text-transform: uppercase; }
+
+        .hidden { display: none !important; }
+        .edit-input { background: transparent; border: 1px solid transparent; color: #fff; width: 100%; padding: 6px; font-size: 12px; border-radius: 4px; }
+        .edit-input:focus { border-color: var(--brand); background: rgba(238, 77, 45, 0.1); outline: none; }
+        .btn-del { background: rgba(239, 68, 68, 0.1); border: none; color: #ef4444; cursor: pointer; padding: 6px; border-radius: 4px; font-size: 12px; }
+       
+        .custom-popup { position: absolute; background: #1e293b; border: 1px solid #334155; width: 500px; max-height: 400px; overflow-y: auto; z-index: 9999; box-shadow: 0 20px 60px rgba(0,0,0,0.8); border-radius: 8px; font-size: 13px; }
+        .popup-item { padding: 12px 18px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; }
+        .popup-item:hover { background: var(--brand); color: white !important; }
+        .status-free { border-left: 4px solid #10b981; }
+        .badge-free { background: #10b981; color: #000; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
 <div class="top-bar">
     <div style="display:flex; align-items:center;">
-        <img src="shopee_pet.png" class="mascot-mini" onerror="this.style.display='none'">
-        <div class="logo"><h1>Sistema <span class="text-shopee">Shopee</span></h1></div>
+        <div class="logo"><h1>Sistema <span class="text-shopee">SPX</span> Cloud</h1></div>
     </div>
-    <div style="display:flex; align-items:center; gap: 15px;">
-        <div id="file-info" style="font-size:11px; color:#94a3b8; font-weight:500;">Aguardando...</div>
-        <button id="btn-top-back" class="btn-top-back" onclick="window.location.reload()">
-            <i class="fa-solid fa-rotate-left"></i> Voltar / Importar
-        </button>
+    <div class="main-nav">
+        <button class="nav-btn active" onclick="window.switchView('alocacao')"><i class="fa-solid fa-code-compare"></i> 1. Alocação</button>
+        <button class="nav-btn" onclick="window.switchView('rodizio')"><i class="fa-solid fa-chart-line"></i> 2. Dashboard Semanal</button>
     </div>
 </div>
 
-<div class="container">
-    <div id="view-upload">
-        <h1 class="hero-title">Alocação Automática de Utilitários</h1>
-       
-        <div class="upload-box" onclick="document.getElementById('upl').click()">
-            <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-            <h2 style="margin:0 0 10px 0; font-size: 18px; font-weight:700;">Clique para Importar Planilha</h2>
-            <p style="margin:0; color:#94a3b8; font-size: 12px;">Com Match Preciso e Nuvem Firebase</p>
-            <input type="file" id="upl" accept=".xlsx" style="display:none">
-        </div>
-       
-        <div id="loading-overlay"><i class="fa-solid fa-microchip"></i> PROCESSANDO DADOS...</div>
+<div class="container" id="main-container">
+   
+    <div id="view-alocacao">
+        <div id="view-upload">
+            <h1 class="hero-title">Motor IA de Alocação e Rodízio</h1>
+            <div class="upload-box" onclick="document.getElementById('upl').click()">
+                <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                <h2 style="margin:0 0 10px 0; font-size: 18px; font-weight:700;">Importar Planilha</h2>
+                <p style="margin:0; color:#94a3b8; font-size: 12px;">Match 100% Fiel à Coluna F</p>
+                <input type="file" id="upl" accept=".xlsx" style="display:none">
+            </div>
+            <div id="loading-overlay"><i class="fa-solid fa-microchip"></i> PROCESSANDO DADOS...</div>
 
-        <div class="settings-area">
-            <label class="switch-label"><input type="checkbox" id="checkRodizio" checked> Rodízio Aleatório</label>
-            <label class="switch-label"><input type="checkbox" id="checkAll" checked> Utilizar Curingas (All)</label>
-        </div>
-    </div>
-
-    <div id="view-dashboard">
-        <div class="stats-bar">
-            <div class="stat-card"><div class="stat-val" style="color:var(--success)" id="v-alloc">0</div><div class="stat-lbl">Alocados</div></div>
-            <div class="stat-card"><div class="stat-val" style="color:#f59e0b" id="v-pend">0</div><div class="stat-lbl">Pendentes</div></div>
-            <div class="stat-card"><div class="stat-val" style="color:#3b82f6" id="v-free">0</div><div class="stat-lbl">Livres</div></div>
-            <div class="stat-card"><div class="stat-val" style="color:#ef4444" id="v-ign">0</div><div class="stat-lbl">Ignorados</div></div>
+            <div class="settings-area">
+                <label class="switch-label"><input type="checkbox" id="checkRodizio" checked> Rodízio Aleatório</label>
+                <label class="switch-label"><input type="checkbox" id="checkAll" checked> Utilizar Curingas (All)</label>
+            </div>
         </div>
 
-        <div class="tab-nav">
-            <button class="tab-btn active" onclick="nav('t1', this)">✅ ALOCADOS</button>
-            <button class="tab-btn" onclick="nav('t2', this)">⚠️ SOBRAS</button>
-            <button class="tab-btn" onclick="nav('t3', this)">🚚 LIVRES</button>
-            <!-- ABA NOVA DO DASHBOARD INTEGRADA NO DESIGN ORIGINAL -->
-            <button class="tab-btn" onclick="nav('t4', this); loadDashboardData();">📊 RODÍZIO SEMANAL</button>
-        </div>
+        <div id="view-dashboard">
+            <div class="stats-bar">
+                <div class="stat-card"><div class="stat-val" style="color:var(--success)" id="v-alloc">0</div><div class="stat-lbl">Alocados</div></div>
+                <div class="stat-card"><div class="stat-val" style="color:#f59e0b" id="v-pend">0</div><div class="stat-lbl">Pendentes</div></div>
+                <div class="stat-card"><div class="stat-val" style="color:#3b82f6" id="v-free">0</div><div class="stat-lbl">Livres</div></div>
+                <div class="stat-card"><div class="stat-val" style="color:#ef4444" id="v-ign">0</div><div class="stat-lbl">Ignorados</div></div>
+            </div>
 
-        <div class="table-wrap">
-            <div class="table-scroll">
-               
-                <table id="t1">
-                    <thead><tr>
-                        <th style="width: 40px; text-align:center;">Del</th>
-                        <th style="width: 30px; text-align:center;">#</th>
-                        <th style="width: 70px;">Rota AT</th>
-                        <th style="width: 100px;">AT / TO</th>
-                        <th style="width: 60px; color: #a5f3fc;">Litragem</th>
-                        <th style="width: 380px;">Nome Motorista (Popup Auto)</th>
-                        <th style="width: 80px;">ID</th>
-                        <th>Veículo</th>
-                        <th style="color: #fbbf24;">Letra</th>
-                        <th style="width: 90px;">Tipo Match</th>
-                        <th style="color:var(--success)">Cluster (Match)</th>
-                    </tr></thead>
-                    <tbody id="b-alocados"></tbody>
-                </table>
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="window.nav('t1', this)">✅ ALOCADOS</button>
+                <button class="tab-btn" onclick="window.nav('t2', this)">⚠️ SOBRAS</button>
+                <button class="tab-btn" onclick="window.nav('t3', this)">🚚 LIVRES</button>
+            </div>
 
-                <table id="t2" class="hidden">
-                    <thead><tr><th>Rota AT</th><th>AT Completa</th><th>Litragem</th><th>Letra</th><th>Cluster Necessário</th></tr></thead>
-                    <tbody id="b-rotas"></tbody>
-                </table>
+            <div class="table-wrap">
+                <div class="table-scroll">
+                    <table id="t1">
+                        <thead><tr>
+                            <th style="width: 30px;">Del</th>
+                            <th style="width: 30px;">#</th>
+                            <th style="width: 70px;">Rota AT</th>
+                            <th style="width: 100px;">AT / TO</th>
+                            <th style="width: 60px; color: #a5f3fc;">Litragem</th>
+                            <th style="width: 250px;">Nome Motorista</th>
+                            <th style="width: 80px;">ID</th>
+                            <th>Veículo</th>
+                            <th style="color: #fbbf24;">Letra</th>
+                            <th>Tipo Match</th>
+                            <th style="color:var(--success)">Cluster (Col F)</th>
+                        </tr></thead>
+                        <tbody id="b-alocados"></tbody>
+                    </table>
 
-                <table id="t3" class="hidden">
-                    <thead><tr><th>Nome Motorista</th><th>ID</th><th>Veículo</th><th>Clusters</th></tr></thead>
-                    <tbody id="b-mot"></tbody>
-                </table>
+                    <table id="t2" class="hidden">
+                        <thead><tr><th>Rota AT</th><th>AT Completa</th><th>Litragem</th><th>Letra</th><th>Cluster (F)</th></tr></thead>
+                        <tbody id="b-rotas"></tbody>
+                    </table>
 
-                <!-- CONTEÚDO DA ABA RODIZIO -->
-                <div id="t4" class="hidden" style="width: 100%;">
-                    <div style="padding: 15px; background: #0b1120; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: #94a3b8; font-size: 11px; text-transform: uppercase; font-weight: bold;">Contagem Histórica do Banco de Dados</span>
-                        <button onclick="loadDashboardData()" style="background: transparent; color: var(--brand); border: 1px solid var(--brand); padding: 5px 15px; border-radius: 4px; cursor: pointer; font-size: 10px; text-transform: uppercase;"><i class="fa-solid fa-rotate"></i> Atualizar Nuvem</button>
-                    </div>
-                    <div id="dash-loading" style="padding: 30px; text-align: center; color: var(--brand); font-weight: bold;"><i class="fa-solid fa-spinner fa-spin"></i> Conectando ao Firestore...</div>
-                    <ul class="dash-list" id="b-rodizio"></ul>
+                    <table id="t3" class="hidden">
+                        <thead><tr><th>Nome Motorista</th><th>ID</th><th>Veículo</th><th>Clusters</th></tr></thead>
+                        <tbody id="b-mot"></tbody>
+                    </table>
                 </div>
-
-            </div>
-           
-            <div id="pull-area" class="btn-pull-area">
-                <button class="btn-pull" onclick="pullRemainingRoutes()">
-                    <i class="fa-solid fa-arrow-down"></i> PUXAR ROTAS SOBRANDO
-                </button>
+               
+                <div id="pull-area" class="btn-pull-area">
+                    <button class="btn-pull" onclick="window.pullRemainingRoutes()">PUXAR ROTAS SOBRANDO</button>
+                </div>
             </div>
         </div>
     </div>
+
+    <div id="view-rodizio">
+        <div class="rodizio-header">
+            <div>
+                <h1 class="hero-title" style="margin:0;">Justiça de Rodízio Semanal</h1>
+                <p style="color:#94a3b8; margin: 5px 0 0 0; font-size: 13px;">Acompanhamento das escalas salvas no Firebase.</p>
+            </div>
+            <button class="nav-btn active" onclick="window.loadDashboardData()"><i class="fa-solid fa-rotate-right"></i> Atualizar Nuvem</button>
+        </div>
+       
+        <div class="dashboard-grid">
+            <div class="dash-card">
+                <h3 style="margin: 0 0 20px 0; color: #fff;">Motoristas Escalados (Geral)</h3>
+                <div id="rodizio-loading" style="color: var(--brand); font-weight: bold;"><i class="fa-solid fa-spinner fa-spin"></i> Conectando...</div>
+                <ul class="leaderboard-list" id="leaderboard-list"></ul>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <div class="footer-bar hidden" id="footer-actions">
-    <button class="btn-add-driver" onclick="openAddDriver()">
-        <i class="fa-solid fa-user-plus"></i> + Motorista
-    </button>
-    <button class="btn-copy" onclick="copyCombined(this)">
-        <i class="fa-regular fa-copy"></i> Copiar ID e AT
-    </button>
-    <button class="btn-cloud" onclick="salvarNoFirebase()">
-        <i class="fa-solid fa-cloud-arrow-up"></i> Salvar na Nuvem
-    </button>
+    <button class="btn-copy" onclick="window.copyCombined(this)"><i class="fa-regular fa-copy"></i> Copiar ID e AT</button>
+    <button class="btn-save-cloud" onclick="window.salvarNoFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> Salvar Escala na Nuvem</button>
 </div>
 
-<!-- MODAL ADD DRIVER -->
-<div id="add-modal" class="modal-overlay hidden">
-    <div class="modal-box">
-        <h3 style="color:#fff; margin-top:0;">Adicionar Novo Motorista</h3>
-        <input id="new-name" class="modal-input" placeholder="Nome Completo">
-        <input id="new-id" class="modal-input" placeholder="ID Shopee">
-        <input id="new-veic" class="modal-input" placeholder="Veículo (Ex: VUC, FIORINO)">
-        <div class="modal-actions">
-            <button onclick="closeAddDriver()" style="background: rgba(255,255,255,0.1); border:none; color:white; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Cancelar</button>
-            <button onclick="confirmAddDriver()" style="background: var(--success); border:none; color:black; font-weight:bold; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Salvar</button>
-        </div>
-    </div>
-</div>
+<script type="module">
+    // IMPORTAÇÕES FIREBASE DO SEU PROJETO EXATO
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, serverTimestamp, writeBatch, doc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
-<script>
-    // ==========================================
-    // INICIALIZAÇÃO FIREBASE (VERSÃO CLÁSSICA - COMPAT)
-    // Funciona perfeitamente no Vercel sem quebrar funções
-    // ==========================================
+    // SUAS CHAVES
     const firebaseConfig = {
         apiKey: "AIzaSyBxzyFdum86noYdpQnldyjX4wiPB7IJEMY",
         authDomain: "spx-logistica-online.firebaseapp.com",
@@ -152,21 +241,49 @@
         projectId: "spx-logistica-online",
         storageBucket: "spx-logistica-online.firebasestorage.app",
         messagingSenderId: "347761759499",
-        appId: "1:347761759499:web:c257117806c2496fe77e0e",
-        measurementId: "G-HFXQW4SMBQ"
+        appId: "1:347761759499:web:c257117806c2496fe77e0e"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const dbFirestore = firebase.firestore();
+    const app = initializeApp(firebaseConfig);
+    const dbFirestore = getFirestore(app);
 
-    // ==========================================
-    // LÓGICA DO SISTEMA
-    // ==========================================
+    // DADOS DO SISTEMA
     let store = { allocated: [], routes: [], drivers: [], filename: "" };
     let dbData = { dataCode: "" };
     let driverMap = {};
     let allDriversList = [];
 
+    // FUNÇÕES DE UI (Atreladas ao window para o HTML poder chamar)
+    window.switchView = function(view) {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+       
+        if(view === 'alocacao') {
+            document.getElementById('view-alocacao').style.display = 'block';
+            document.getElementById('view-rodizio').style.display = 'none';
+            if(store.allocated.length > 0) document.getElementById('footer-actions').classList.remove('hidden');
+        } else {
+            document.getElementById('view-alocacao').style.display = 'none';
+            document.getElementById('view-rodizio').style.display = 'block';
+            document.getElementById('footer-actions').classList.add('hidden');
+            window.loadDashboardData();
+        }
+    }
+
+    window.nav = function(id, btn) {
+        document.getElementById('t1').classList.add('hidden');
+        document.getElementById('t2').classList.add('hidden');
+        document.getElementById('t3').classList.add('hidden');
+       
+        document.getElementById(id).classList.remove('hidden');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+       
+        if(id === 't1') document.getElementById('pull-area').style.display = 'block';
+        else document.getElementById('pull-area').style.display = 'none';
+    };
+
+    // ALGORITMOS DE TEXTO E MATCH
     const cleanBasic = t => String(t||"").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
    
     function getTokens(str) {
@@ -196,41 +313,8 @@
         return new Date();
     }
     function getDateCode(d) { return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`; }
-    function formatDate(d) { return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`; }
 
-    function findHeaderRow(ws) {
-        let range = XLSX.utils.decode_range(ws['!ref']);
-        for(let R=range.s.r; R<= Math.min(range.e.r, 15); ++R) {
-            for(let C=range.s.c; C<=range.e.c; ++C) {
-                let cell = ws[XLSX.utils.encode_cell({r:R, c:C})];
-                if(cell && cell.v && String(cell.v).toLowerCase().includes("rota")) return R;
-            }
-        }
-        return 0;
-    }
-
-    function mapColumns(ws, rowIdx) {
-        let map = { rotaAt:'A', atTo:'B', letra:'C', clusterR:'F', litragem:'T', nome:'A', id:'C', clusterM:'E', veic:'G', rodou:'B' };
-        let range = XLSX.utils.decode_range(ws['!ref']);
-        for(let C=range.s.c; C<=range.e.c; ++C) {
-            let cell = ws[XLSX.utils.encode_cell({r:rowIdx, c:C})];
-            if(!cell || !cell.v) continue;
-            let h = String(cell.v).toLowerCase();
-            let colLet = XLSX.utils.encode_col(C);
-
-            if(h.includes("rota") && !h.includes("at")) map.rotaAt = colLet;
-            if(h.includes("at /") || h.includes("at/to")) map.atTo = colLet;
-            if(h.includes("letra") || h.includes("rota id")) map.letra = colLet;
-            if(h.includes("cidade") || h.includes("destino") || h.includes("municipio") || h.includes("endereço") || h.includes("cluster")) map.clusterR = colLet;
-            if(h.includes("litragem") || h.includes("volume") || h.includes("cubagem") || h.includes("vol.")) map.litragem = colLet;
-            if(h.includes("nome")) map.nome = colLet;
-            if(h.includes("id") && !h.includes("rota")) map.id = colLet;
-            if(h.includes("cluster") || h.includes("preferencia")) map.clusterM = colLet;
-            if(h.includes("veiculo") || h.includes("veículo")) map.veic = colLet;
-        }
-        return map;
-    }
-
+    // UPLOAD E PROCESSAMENTO EXCEL
     document.getElementById('upl').addEventListener('change', function(e) {
         if(!e.target.files[0]) return;
         store = { allocated: [], routes: [], drivers: [], filename: "" };
@@ -250,90 +334,70 @@
                         const wsR = wb.Sheets[sR]; const wsM = wb.Sheets[sM];
                         let dateObj = getJsDate(wsM['A2']);
                         dbData.dataCode = getDateCode(dateObj);
-                        store.filename = `Atribuição ${formatDate(dateObj)}.xlsx`;
-                        document.getElementById('file-info').innerHTML = `Data Base: <b>${formatDate(dateObj)}</b>`;
-
-                        let rowR = findHeaderRow(wsR);
-                        let mapR = mapColumns(wsR, rowR);
-                        // Força F e E
-                        mapR.clusterR = 'F';
                        
-                        let rowM = findHeaderRow(wsM);
-                        let mapM = mapColumns(wsM, rowM);
-                        mapM.clusterM = 'E';
+                        // Mapeamento FORÇADO como você pediu
+                        let rawRom = XLSX.utils.sheet_to_json(wsR, {header: "A", range: 1}); // Pula cabecalho
+                        let rawMot = XLSX.utils.sheet_to_json(wsM, {header: "A", range: 1});
 
-                        let rawRom = XLSX.utils.sheet_to_json(wsR, {header: "A", range: rowR + 1});
-                        let rawMot = XLSX.utils.sheet_to_json(wsM, {header: "A", range: rowM + 1});
-
-                        runEngine(rawRom, rawMot, mapR, mapM);
+                        runEngine(rawRom, rawMot);
                         renderScreen();
-
                     } else { alert("Erro: Abas não encontradas."); }
                 } catch (err) { alert("Erro: " + err.message); }
                 document.getElementById('loading-overlay').style.display = 'none';
             }, 100);
         };
-        r.readAsArrayBuffer(e.target.files[0]);
-        e.target.value = '';
+        r.readAsArrayBuffer(e.target.files[0]); e.target.value = '';
     });
 
-    function runEngine(rom, mot, mapR, mapM) {
+    function runEngine(rom, mot) {
         let rotasValidas = [];
-        let ignored = 0;
-       
-        let ckRod = document.getElementById('checkRodizio');
-        let ckAll = document.getElementById('checkAll');
-        let useRodizio = ckRod ? ckRod.checked : true;
-        let useAll = ckAll ? ckAll.checked : true;
+        let ckRod = document.getElementById('checkRodizio'); let useRodizio = ckRod ? ckRod.checked : true;
+        let ckAll = document.getElementById('checkAll'); let useAll = ckAll ? ckAll.checked : true;
 
         rom.forEach(r => {
             if(!r['A']) return;
             let atCode = String(r['B']||"").toUpperCase();
             if(atCode.includes(dbData.dataCode)) {
-                let rId = String(r[mapR.rotaAt] || "");
-                if(!rId.toLowerCase().includes("rota") && rId.length > 0) rId = "Rota " + rId;
-                let letraVal = String(r['C'] || r[mapR.letra] || "");
-                let litVal = String(r[mapR.litragem] || "-");
-                let clusterReal = String(r[mapR.clusterR]||r['F']||"");
+                let rId = String(r['A'] || ""); if(!rId.toLowerCase().includes("rota") && rId.length > 0) rId = "Rota " + rId;
+                let letraVal = String(r['C'] || "");
+                let litVal = String(r['T'] || "-"); // Litragem cravada na T
+                let cidadeF = String(r['F'] || ""); // Cidade cravada na F
+                let regioesG = String(r['G'] || ""); // Bairros na G
 
                 rotasValidas.push({
-                    raw: r, id: rId, at: r[mapR.atTo], letra: letraVal,
-                    cluster: clusterReal, st: 'pendente', litragem: litVal
+                    id: rId, at: String(r['B']||""), letra: letraVal,
+                    cidade: cidadeF, regioes: regioesG,
+                    clusterVisual: cidadeF, // MOSTRA SEMPRE A COLUNA F
+                    st: 'pendente', litragem: litVal
                 });
             }
         });
 
         let frota = [];
         mot.forEach(m => {
-            let v = String(m[mapM.veic]||"").toUpperCase();
-            let nome = String(m[mapM.nome]||"").trim().toUpperCase();
-            let nomeReal = String(m[mapM.nome]||"").trim();
-            let id = String(m[mapM.id]||"");
+            let v = String(m['G']||"").toUpperCase();
+            let nome = String(m['A']||"").trim().toUpperCase();
+            let nomeReal = String(m['A']||"").trim();
+            let id = String(m['C']||"");
+            let clusterM = String(m['E']||"");
 
             if(nome.length > 2 && !v.includes("MOTO")) {
-                driverMap[nome] = id;
-                allDriversList.push(nomeReal);
+                driverMap[nome] = id; allDriversList.push(nomeReal);
             }
 
-            if(v.includes("MOTO") || v.includes("PASSEIO")) { ignored++; return; }
-            let aceito = false;
-            if(v.includes("FIORINO") || v.includes("VAN") || v.includes("VUC") || v.includes("UTILITARIO") || v.includes("ENTREGA")) aceito = true;
-
-            if(aceito && String(m[mapM.clusterM]).length > 1) {
-                let isCuringa = isAll(String(m[mapM.clusterM]||""), v);
-                frota.push({
-                    nome: m[mapM.nome], id: m[mapM.id], cluster: String(m[mapM.clusterM]||""),
-                    veic: v, rodou: String(m[mapM.rodou]||"Não"),
-                    isAll: isCuringa, disp: true
-                });
+            if(v.includes("MOTO") || v.includes("PASSEIO")) return;
+            if(v.includes("FIORINO") || v.includes("VAN") || v.includes("VUC") || v.includes("UTILITARIO")) {
+                let isCuringa = isAll(clusterM, v);
+                frota.push({ nome: m['A'], id: m['C'], cluster: clusterM, veic: v, isAll: isCuringa, disp: true });
             }
         });
 
         if(useRodizio) shuffle(frota);
 
-        const checkDeepMatch = (motCluster, rotCluster) => {
+        // O MATCH VERIFICA F E G PARA ENCONTRAR O MOTORISTA
+        const checkDeepMatch = (motCluster, cidadeRot, regioesRot) => {
             let motTokens = getTokens(motCluster);
-            let rotTokens = getTokens(rotCluster);
+            let rotTokens = getTokens(cidadeRot + " " + regioesRot);
             for (let mToken of motTokens) {
                 if (rotTokens.includes(mToken)) return mToken;
             }
@@ -344,25 +408,22 @@
             rotasValidas.forEach(r => {
                 if(r.st === 'ok') return;
                 for(let m of frota) {
-                    if(!m.disp) continue;
-                    if(m.isAll !== forceAll) continue;
-                   
-                    let match = false; let type = ""; let finalReason = "";
+                    if(!m.disp || m.isAll !== forceAll) continue;
+                    let match = false; let type = "";
                    
                     if(forceAll) {
-                        match = true; type = "Curinga"; finalReason = r.cluster;
+                        match = true; type = "Curinga";
                     } else {
-                        let cMatch = checkDeepMatch(m.cluster, r.cluster);
-                        if(cMatch) {
-                            match = true; type = "Fixo"; finalReason = cMatch;
-                        }
+                        let cMatch = checkDeepMatch(m.cluster, r.cidade, r.regioes);
+                        if(cMatch) { match = true; type = "Fixo"; }
                     }
 
                     if(match) {
                         store.allocated.push({
                             rota: r.id, at: r.at, nome: m.nome, id: m.id,
-                            veic: m.veic, letra: r.letra, rodou: m.rodou,
-                            cluster: finalReason, litragem: r.litragem, matchType: type
+                            veic: m.veic, letra: r.letra,
+                            cluster: r.clusterVisual, // SEMPRE EXIBE A COLUNA F
+                            litragem: r.litragem, matchType: type
                         });
                         m.disp = false; r.st = 'ok'; break;
                     }
@@ -370,74 +431,41 @@
             });
         };
 
-        runMatch(false); // Fixo
-        if(useAll) runMatch(true); // Curinga
+        runMatch(false); // 1. Fixos
+        if(useAll) runMatch(true); // 2. Curingas
 
         rotasValidas.forEach(r => {
-            if(r.st !== 'ok') store.routes.push({ rota: r.id, at: r.at, letra: r.letra, cluster: r.cluster, litragem: r.litragem });
+            if(r.st !== 'ok') store.routes.push({ rota: r.id, at: r.at, letra: r.letra, cluster: r.clusterVisual, litragem: r.litragem });
         });
        
         frota.forEach(m => {
             if(m.disp) store.drivers.push({ nome: m.nome, id: m.id, veic: m.veic, cluster: m.cluster });
         });
 
-        updateStats(ignored);
-    }
-
-    function updateStats(ign) {
         document.getElementById('v-alloc').innerText = store.allocated.length;
         document.getElementById('v-pend').innerText = store.routes.length;
         document.getElementById('v-free').innerText = store.drivers.length;
-        if(ign > 0) document.getElementById('v-ign').innerText = ign;
-    }
-
-    window.pullRemainingRoutes = function() {
-        if(store.routes.length === 0) return alert("Não há rotas sobrando.");
-        let pulled = store.routes.map(r => ({
-            rota: r.rota, at: r.at, nome: "", id: "", veic: "", letra: r.letra, rodou: "", cluster: r.cluster, litragem: r.litragem, matchType: "Manual"
-        }));
-        store.allocated = [...store.allocated, ...pulled];
-        store.routes = [];
-        renderScreen();
-        updateStats(0);
     }
 
     function renderScreen() {
         document.getElementById('view-upload').style.display = 'none';
         document.getElementById('view-dashboard').style.display = 'block';
-        document.getElementById('footer-actions').style.display = 'flex';
         document.getElementById('footer-actions').classList.remove('hidden');
-        document.getElementById('btn-top-back').style.display = 'flex';
-
-        let nameCount = {}; let idCount = {};
-        store.allocated.forEach(r => {
-            if(r.nome && r.nome.length > 2) nameCount[r.nome] = (nameCount[r.nome] || 0) + 1;
-            if(r.id && r.id.length > 1) idCount[r.id] = (idCount[r.id] || 0) + 1;
-        });
 
         let h1 = "";
         store.allocated.forEach((r,i) => {
-            let cls = r.nome === "" ? "edit-input input-manual" : "edit-input";
-            let isDup = (nameCount[r.nome] > 1) || (idCount[r.id] > 1);
-            let rowClass = isDup ? "row-dup" : "";
+            let mTag = r.matchType === "Fixo" ? `<span class="tag-fixo">🎯 Fixo</span>` : r.matchType === "Curinga" ? `<span class="tag-curinga">🃏 Curinga</span>` : `<span style="color:#64748b; font-size:10px;">Manual</span>`;
            
-            let mTag = "";
-            if(r.matchType === "Fixo") mTag = `<span class="tag-fixo">🎯 Fixo</span>`;
-            else if(r.matchType === "Curinga") mTag = `<span class="tag-curinga">🃏 Curinga</span>`;
-            else mTag = `<span style="color:#64748b; font-size:10px;">Manual</span>`;
-
-            h1 += `<tr class="${rowClass}">
-                <td style="text-align:center"><button class="btn-del" onclick="delRow(${i})"><i class="fa-solid fa-trash"></i></button></td>
+            h1 += `<tr>
+                <td style="text-align:center"><button class="btn-del" onclick="window.delRow(${i})"><i class="fa-solid fa-trash"></i></button></td>
                 <td style="text-align:center; color:#64748b; font-size:10px;">${i+1}</td>
-                <td>${r.rota}</td><td>${r.at}</td>
-                <td style="color:#a5f3fc; text-align:center;">${r.litragem || '-'}</td>
+                <td>${r.rota}</td><td>${r.at}</td><td style="color:#a5f3fc;">${r.litragem}</td>
                 <td style="position:relative;">
-                    <input class="${cls}" value="${r.nome}"
-                           onclick="onInputName(${i}, this)" oninput="onInputName(${i}, this)" onchange="onNameChange(${i}, this.value)"
-                           placeholder="Digite nome..." autocomplete="off">
+                    <input class="edit-input" value="${r.nome}" onclick="window.onInputName(${i}, this)" oninput="window.onInputName(${i}, this)" onchange="window.onNameChange(${i}, this.value)" autocomplete="off">
                 </td>
-                <td><input class="${cls}" id="id-${i}" value="${r.id}" readonly></td>
-                <td>${r.veic}</td><td>${r.letra}</td><td style="text-align:center;">${mTag}</td>
+                <td><input class="edit-input" value="${r.id}" readonly></td>
+                <td>${r.veic}</td><td>${r.letra}</td>
+                <td style="text-align:center;">${mTag}</td>
                 <td style="color:#10b981; font-weight:700;">${r.cluster}</td>
             </tr>`;
         });
@@ -456,28 +484,27 @@
 
     window.onNameChange = function(idx, val) {
         let cleanName = val.trim().toUpperCase(); let oldName = store.allocated[idx].nome;
-        if(oldName && oldName.toUpperCase() !== cleanName) recycleDriver(oldName);
+        if(oldName && oldName.toUpperCase() !== cleanName) window.recycleDriver(oldName);
         store.allocated[idx].nome = val;
-       
         if(cleanName === "") { store.allocated[idx].id = ""; }
         else {
-            if(driverMap[cleanName]) { store.allocated[idx].id = driverMap[cleanName]; consumeFreeDriver(cleanName); }
+            if(driverMap[cleanName]) { store.allocated[idx].id = driverMap[cleanName]; window.consumeFreeDriver(cleanName); }
             else { store.allocated[idx].id = ""; }
         }
         renderScreen();
     }
 
     window.onInputName = function(idx, inp) {
-        let val = inp.value; closeAllLists();
+        let val = inp.value; window.closeAllLists();
         let a = document.createElement("DIV"); a.className = "custom-popup";
-        a.style.top = (inp.offsetTop + inp.offsetHeight) + "px"; a.style.left = inp.offsetLeft + "px"; a.style.width = inp.offsetWidth + "px";
+        a.style.top = (inp.offsetTop + inp.offsetHeight) + "px"; a.style.left = inp.offsetLeft + "px"; a.style.width = "400px";
         inp.parentNode.appendChild(a);
 
         let matches = [];
         if(!val) { matches = allDriversList; } else { matches = allDriversList.filter(d => d.toUpperCase().includes(val.toUpperCase())); }
         matches.sort((a,b) => { let freeA = checkFree(a)?1:0; let freeB = checkFree(b)?1:0; return freeB - freeA; });
 
-        let count = 0; let limit = 100;
+        let count = 0;
         for(let i=0; i<matches.length; i++) {
             let sName = matches[i]; let isFree = checkFree(sName);
             let b = document.createElement("DIV");
@@ -486,17 +513,17 @@
            
             b.addEventListener("mousedown", function(e) {
                 e.preventDefault();
-                let oldName = store.allocated[idx].nome; if(oldName) recycleDriver(oldName);
+                let oldName = store.allocated[idx].nome; if(oldName) window.recycleDriver(oldName);
                 inp.value = sName; store.allocated[idx].nome = sName;
                 let k = sName.trim().toUpperCase(); if(driverMap[k]) store.allocated[idx].id = driverMap[k];
-                consumeFreeDriver(k); renderScreen(); closeAllLists();
+                window.consumeFreeDriver(k); renderScreen(); window.closeAllLists();
             });
             a.appendChild(b);
-            count++; if(count > limit) break;
+            count++; if(count > 100) break;
         }
     }
 
-    function recycleDriver(name) {
+    window.recycleDriver = function(name) {
         if(!name || name.length < 2) return; let key = name.toUpperCase();
         if(driverMap[key]) {
             let exists = store.drivers.some(d => d.nome.toUpperCase() === key);
@@ -504,13 +531,19 @@
         }
     }
 
-    function consumeFreeDriver(nameKey) {
+    window.consumeFreeDriver = function(nameKey) {
         let freeIdx = store.drivers.findIndex(d => d.nome.toUpperCase() === nameKey);
         if(freeIdx > -1) { store.drivers.splice(freeIdx, 1); }
     }
 
-    function closeAllLists() { let x = document.getElementsByClassName("custom-popup"); for (let i = 0; i < x.length; i++) x[i].parentNode.removeChild(x[i]); }
-    document.addEventListener("mousedown", function(e) { if(!e.target.classList.contains('edit-input') && !e.target.closest('.custom-popup')) { closeAllLists(); } });
+    window.closeAllLists = function() { let x = document.getElementsByClassName("custom-popup"); for (let i = 0; i < x.length; i++) x[i].parentNode.removeChild(x[i]); }
+    document.addEventListener("mousedown", function(e) { if(!e.target.classList.contains('edit-input') && !e.target.closest('.custom-popup')) { window.closeAllLists(); } });
+
+    window.delRow = function(idx) {
+        let row = store.allocated[idx]; if(row.nome) window.recycleDriver(row.nome);
+        store.allocated.splice(idx, 1); renderScreen();
+        document.getElementById('v-alloc').innerText = store.allocated.length;
+    };
 
     window.copyCombined = function(btn) {
         let text = store.allocated.map(r => `${r.id || ""}\t${r.at || ""}`).join('\n');
@@ -520,94 +553,62 @@
         });
     }
 
-    window.delRow = function(idx) {
-        let row = store.allocated[idx]; if(row.nome) recycleDriver(row.nome);
-        store.allocated.splice(idx, 1); renderScreen(); updateStats(0);
-    };
-
-    window.openAddDriver = function() {
-        document.getElementById('add-modal').classList.remove('hidden');
-        document.getElementById('new-name').value = ''; document.getElementById('new-id').value = ''; document.getElementById('new-veic').value = '';
-    }
-    window.closeAddDriver = function() { document.getElementById('add-modal').classList.add('hidden'); }
-    window.confirmAddDriver = function() {
-        let name = document.getElementById('new-name').value.trim(); let id = document.getElementById('new-id').value.trim(); let veic = document.getElementById('new-veic').value.trim() || "MANUAL";
-        if(name.length < 3 || id.length < 1) return alert("Preencha Nome e ID corretamente.");
-        driverMap[name.toUpperCase()] = id; allDriversList.push(name);
-        store.drivers.push({ nome: name, id: id, veic: veic, cluster: "MANUAL" });
-        closeAddDriver(); renderScreen(); updateStats(0); alert("Motorista adicionado aos Livres!");
+    window.pullRemainingRoutes = function() {
+        if(store.routes.length === 0) return alert("Não há rotas sobrando.");
+        let pulled = store.routes.map(r => ({ rota: r.rota, at: r.at, nome: "", id: "", veic: "", letra: r.letra, cluster: r.cluster, litragem: r.litragem, matchType: "Manual" }));
+        store.allocated = [...store.allocated, ...pulled]; store.routes = []; renderScreen();
+        document.getElementById('v-alloc').innerText = store.allocated.length;
+        document.getElementById('v-pend').innerText = 0;
     }
 
-    window.nav = function(id, btn) {
-        // Controle das abas
-        document.getElementById('t1').classList.add('hidden');
-        document.getElementById('t2').classList.add('hidden');
-        document.getElementById('t3').classList.add('hidden');
-        document.getElementById('t4').classList.add('hidden');
-       
-        document.getElementById(id).classList.remove('hidden');
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-       
-        if(id === 't1') document.getElementById('pull-area').style.display = 'block';
-        else document.getElementById('pull-area').style.display = 'none';
-    };
-
     // ==========================================
-    // FUNÇÕES DO FIREBASE (NUVEM)
+    // FUNÇÕES NUVEM (FIREBASE)
     // ==========================================
-    window.salvarNoFirebase = function() {
-        if(store.allocated.length === 0) return alert("Não há rotas para salvar.");
-       
-        const btn = document.querySelector('.btn-cloud');
+    window.salvarNoFirebase = async function() {
+        if(store.allocated.length === 0) return alert("Não há rotas.");
+        const btn = document.querySelector('.btn-save-cloud');
         let oldHtml = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando na Nuvem...';
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando no Firebase...';
         btn.style.pointerEvents = 'none';
 
-        let dataAtual = new Date();
-        let dataFormatada = dataAtual.toISOString().split('T')[0];
-        let batch = dbFirestore.batch();
-        let count = 0;
-
-        store.allocated.forEach(alocacao => {
-            if(!alocacao.id || alocacao.id === "") return;
-            let ref = dbFirestore.collection("historico_alocacoes").doc();
-            batch.set(ref, {
-                id_motorista: alocacao.id,
-                nome_motorista: alocacao.nome,
-                data_alocacao: dataFormatada,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                rota_at: alocacao.at,
-                bairro_rota: alocacao.cluster,
-                tipo_match: alocacao.matchType,
-                litragem: alocacao.litragem
+        try {
+            const dataFormatada = new Date().toISOString().split('T')[0];
+            const historicoRef = collection(dbFirestore, "historico_alocacoes");
+            const batch = writeBatch(dbFirestore);
+           
+            let count = 0;
+            store.allocated.forEach(al => {
+                if(!al.id || al.id === "") return;
+                let novoDoc = doc(historicoRef);
+                batch.set(novoDoc, {
+                    id_motorista: al.id, nome_motorista: al.nome, data_alocacao: dataFormatada,
+                    timestamp: serverTimestamp(), rota_at: al.at, bairro_rota: al.cluster,
+                    tipo_match: al.matchType, litragem: al.litragem
+                });
+                count++;
             });
-            count++;
-        });
 
-        batch.commit().then(() => {
-            alert(`✅ Sucesso! ${count} escalas salvas no Firebase.`);
+            await batch.commit();
+            alert(`✅ ${count} motoristas salvos na nuvem!`);
             btn.innerHTML = '<i class="fa-solid fa-check"></i> Escala Salva';
             btn.style.background = "#059669";
-            if(document.getElementById('t4').classList.contains('hidden') === false) {
-                window.loadDashboardData();
-            }
-        }).catch((error) => {
-            alert("Erro ao salvar: " + error.message);
-            btn.innerHTML = oldHtml;
-            btn.style.pointerEvents = 'auto';
-        });
+        } catch (error) {
+            console.error(error); alert("Erro: " + error.message);
+            btn.innerHTML = oldHtml; btn.style.pointerEvents = 'auto';
+        }
     }
 
-    window.loadDashboardData = function() {
-        const loading = document.getElementById('dash-loading');
-        const list = document.getElementById('b-rodizio');
-        loading.style.display = 'block';
-        list.innerHTML = "";
+    window.loadDashboardData = async function() {
+        const loading = document.getElementById('rodizio-loading');
+        const list = document.getElementById('leaderboard-list');
+        loading.style.display = 'block'; list.innerHTML = "";
 
-        dbFirestore.collection("historico_alocacoes").get().then((querySnapshot) => {
+        try {
+            const historicoRef = collection(dbFirestore, "historico_alocacoes");
+            const snapshot = await getDocs(historicoRef);
+           
             let contagem = {};
-            querySnapshot.forEach((doc) => {
+            snapshot.forEach(doc => {
                 let data = doc.data();
                 if(data.nome_motorista) {
                     if(!contagem[data.nome_motorista]) contagem[data.nome_motorista] = { qtd: 0, id: data.id_motorista };
@@ -618,31 +619,19 @@
             let arrayMotoristas = Object.keys(contagem).map(nome => ({ nome: nome, id: contagem[nome].id, qtd: contagem[nome].qtd }));
             arrayMotoristas.sort((a, b) => b.qtd - a.qtd);
 
-            if(arrayMotoristas.length === 0) {
-                loading.innerHTML = "Nenhuma escala salva ainda.";
-                return;
-            }
+            if(arrayMotoristas.length === 0) { loading.innerHTML = "Nenhuma escala no banco."; return; }
 
             let html = "";
             arrayMotoristas.forEach(mot => {
-                html += `
-                    <li class="dash-item">
-                        <div>
-                            <div class="dash-name">${mot.nome}</div>
-                            <div style="font-size: 11px; color: #94a3b8;">ID: ${mot.id}</div>
-                        </div>
-                        <div class="dash-count">${mot.qtd} ${mot.qtd === 1 ? 'Escala' : 'Escalas'}</div>
-                    </li>
-                `;
+                html += `<li class="leaderboard-item">
+                    <div class="driver-info"><span class="driver-name">${mot.nome}</span><span class="driver-id">ID: ${mot.id}</span></div>
+                    <div class="badge-count">${mot.qtd} ${mot.qtd === 1 ? 'Escala' : 'Escalas'}</div>
+                </li>`;
             });
-           
-            list.innerHTML = html;
-            loading.style.display = 'none';
-
-        }).catch((error) => {
-            loading.innerHTML = "Erro ao puxar os dados.";
-            console.error("Erro Firebase: ", error);
-        });
+            list.innerHTML = html; loading.style.display = 'none';
+        } catch(error) {
+            console.error(error); loading.innerHTML = "Erro ao buscar do Firebase.";
+        }
     }
 </script>
 
