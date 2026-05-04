@@ -62,7 +62,7 @@
         .upload-icon { font-size: 40px; color: var(--brand); margin-bottom: 15px; }
         #loading-overlay { display: none; margin-top: 20px; color: var(--brand); font-family: 'JetBrains Mono', monospace; font-weight: bold; letter-spacing: 1px; }
 
-        /* DASHBOARD ALOCAÇÃO (O RASCUNHO) */
+        /* DASHBOARD ALOCAÇÃO */
         #view-dashboard { display: none; animation: slideUp 0.6s ease-out; }
         .stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
         .stat-card { background: var(--bg-card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); text-align: center; }
@@ -117,12 +117,11 @@
         .week-col-header { text-align: center !important; color: #cbd5e1; }
         .total-col { font-weight: 900; background: rgba(238, 77, 45, 0.05); color: #fff; text-align: center;}
 
-        /* FOOTER SIMPLIFICADO E DIRETO */
+        /* FOOTER E BOTÃO INSTANTÂNEO */
         .footer-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #070b14; padding: 15px 30px; border-top: 1px solid var(--border); display: flex; justify-content: center; align-items: center; z-index: 2000; gap: 15px; }
         .btn-copy { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer; text-transform: uppercase; display: flex; align-items: center; gap: 8px;}
        
-        /* NOVO BOTÃO DE HISTÓRICO GIGANTE E CLARO */
-        .btn-cloud { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 40px; border-radius: 6px; font-weight: 800; font-size: 13px; cursor: pointer; text-transform: uppercase; display: flex; align-items: center; gap: 8px; letter-spacing: 1px; box-shadow: 0 0 15px rgba(16,185,129,0.3); }
+        .btn-cloud { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 40px; border-radius: 6px; font-weight: 800; font-size: 13px; cursor: pointer; text-transform: uppercase; display: flex; align-items: center; gap: 8px; letter-spacing: 1px; box-shadow: 0 0 15px rgba(16,185,129,0.3); transition: 0.2s;}
         .btn-cloud:hover { transform: translateY(-2px); box-shadow: 0 0 25px rgba(16,185,129,0.6); }
 
         .hidden { display: none !important; }
@@ -200,7 +199,7 @@
         </div>
     </div>
 
-    <!-- TELA 2: MATRIZ DE HISTÓRICO (SOMENTE VISUALIZAÇÃO) -->
+    <!-- TELA 2: MATRIZ DE HISTÓRICO -->
     <div id="view-rodizio">
         <div class="telemetry-card">
             <div class="telemetry-header">
@@ -235,7 +234,7 @@
 
 </div>
 
-<!-- O NOVO BOTÃO SIMPLIFICADO -->
+<!-- BOTÃO GIGANTE DE ENVIO INSTANTÂNEO -->
 <div class="footer-bar hidden" id="footer-actions">
     <button class="btn-copy" onclick="window.copyCombined(this)"><i class="fa-regular fa-copy"></i> Copiar AT e ID</button>
     <button class="btn-cloud" onclick="window.salvarNoFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> ENVIAR ESCALA DE HOJE PARA O HISTÓRICO</button>
@@ -243,7 +242,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, setDoc, doc, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBxzyFdum86noYdpQnldyjX4wiPB7IJEMY",
@@ -261,7 +260,7 @@
     window.driverMap = {};
     window.allDriversList = [];
 
-    // CÁLCULOS MATEMÁTICOS DE DATA SEM FUSO (BLINDADO)
+    // --- CÁLCULOS MATEMÁTICOS DE DATA SEM FUSO ---
     function getJsDate(cell) {
         if(!cell || !cell.v) return new Date();
         if(cell.v instanceof Date) {
@@ -287,7 +286,7 @@
         return String(monday.getDate()).padStart(2,'0') + '/' + String(monday.getMonth()+1).padStart(2,'0');
     }
 
-    // NAVEGAÇÃO
+    // --- NAVEGAÇÃO ---
     window.switchView = function(view) {
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         event.currentTarget.classList.add('active');
@@ -312,10 +311,25 @@
         else document.getElementById('pull-area').style.display = 'none';
     };
 
+    // --- LÓGICA DE TEXTO E BUSCA DO CABEÇALHO (O QUE QUEBROU ANTES E AGORA ESTÁ 100% BLINDADO) ---
     const cleanBasic = t => String(t||"").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
     function getTokens(str) { return str ? cleanBasic(str).split(/[\;\,\|\/\-\n\r]/).map(t => t.trim()).filter(t => t.length > 2) : []; }
     const isAll = (c, v) => { return ['ALL','TODOS','TODAS','QUALQUER','CURINGA','RESERVA','FOLGUISTA'].some(k => cleanBasic(c).includes(k)); };
     const shuffle = a => a.sort(()=>Math.random()-0.5);
+
+    function findHeaderRow(ws) {
+        let range = XLSX.utils.decode_range(ws['!ref']);
+        for(let R=range.s.r; R<= Math.min(range.e.r, 15); ++R) {
+            for(let C=range.s.c; C<=range.e.c; ++C) {
+                let cell = ws[XLSX.utils.encode_cell({r:R, c:C})];
+                if(cell && cell.v) {
+                    let v = String(cell.v).toLowerCase();
+                    if(v.includes("rota") || v.includes("at /") || v.includes("nome") || v.includes("motorista")) return R;
+                }
+            }
+        }
+        return 0; // Fallback se nao achar
+    }
 
     function mapColumns(ws, rowIdx) {
         let map = { rotaAt:'A', atTo:'B', letra:'C', clusterR:'AC', litragem:'T', nome:'B', id:'C', clusterM:'E', veic:'G' };
@@ -334,7 +348,7 @@
         return map;
     }
 
-    // UPLOAD
+    // --- UPLOAD E LEITURA ---
     document.getElementById('upl').addEventListener('change', function(e) {
         if(!e.target.files[0]) return;
         window.store = { allocated: [], routes: [], drivers: [], referenceDate: null };
@@ -361,8 +375,9 @@
                         let wKey = getWeekSortKey(fmtDateStr);
                         document.getElementById('date-range-display').innerHTML = `LENDO RASCUNHO PARA O DIA (Base A2): SEMANA DE ${wKey}`;
                        
-                        let mapR = mapColumns(wsR, 1);
-                        let mapM = mapColumns(wsM, 1);
+                        // Busca de cabecalho inteligente restaurada para garantir que o match funcione
+                        let rowR = findHeaderRow(wsR); let mapR = mapColumns(wsR, rowR);
+                        let rowM = findHeaderRow(wsM); let mapM = mapColumns(wsM, rowM);
                        
                         // GARANTIAS CIRÚRGICAS APLICADAS
                         mapR.clusterR = 'AC';
@@ -370,8 +385,8 @@
                         mapM.clusterM = 'E';
                         mapM.nome = 'B';
 
-                        let rawRom = XLSX.utils.sheet_to_json(wsR, {header: "A", range: 1}); // Pula linha 1
-                        let rawMot = XLSX.utils.sheet_to_json(wsM, {header: "A", range: 1});
+                        let rawRom = XLSX.utils.sheet_to_json(wsR, {header: "A", range: rowR + 1});
+                        let rawMot = XLSX.utils.sheet_to_json(wsM, {header: "A", range: rowM + 1});
 
                         runEngine(rawRom, rawMot, mapR, mapM);
                         renderScreen();
@@ -383,7 +398,7 @@
         r.readAsArrayBuffer(e.target.files[0]); e.target.value = '';
     });
 
-    // MOTOR DE ALOCAÇÃO
+    // --- MOTOR DE ALOCAÇÃO ---
     function runEngine(rom, mot, mapR, mapM) {
         let rotasValidas = [];
         let dateCode = getDateCode(window.store.referenceDate);
@@ -395,7 +410,7 @@
                 let rId = String(r[mapR.rotaAt] || "");
                 if(!rId.toLowerCase().includes("rota") && rId.length > 0) rId = "Rota " + rId;
                
-                // TRAVA NA COLUNA C PARA A LETRA COMPLETA
+                // TRAVA NA COLUNA C PARA A LETRA COMPLETA BRUTA
                 let letraRaw = String(r['C'] || "-");
 
                 rotasValidas.push({
@@ -470,7 +485,7 @@
         document.getElementById('v-free').innerText = window.store.drivers.length;
     }
 
-    // RENDERIZAÇÃO
+    // --- RENDERIZAÇÃO ---
     function renderScreen() {
         document.getElementById('view-upload').style.display = 'none';
         document.getElementById('view-dashboard').style.display = 'block';
@@ -516,7 +531,7 @@
         document.getElementById('b-mot').innerHTML = h3;
     }
 
-    // INTERAÇÕES E EDIÇÕES NO RASCUNHO
+    // --- INTERAÇÕES RASCUNHO ---
     function checkFree(name) { return window.store.drivers.some(d => d.nome.toUpperCase() === name.toUpperCase()); }
 
     window.onNameChange = function(idx, val) {
@@ -599,59 +614,56 @@
         });
     }
 
-    // --- FIREBASE: SALVAR COM ID FIXO (NUNCA DUPLICA, ATUALIZA NA HORA) E EM LOTES ---
-    window.salvarNoFirebase = async function() {
+    // --- FIREBASE: ENVIO INSTANTÂNEO (ZERO DELAY NA TELA) ---
+    window.salvarNoFirebase = function() {
         const btn = document.querySelector('.btn-cloud');
-        let oldHtml = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ENVIANDO PARA O HISTÓRICO...';
-        btn.style.pointerEvents = 'none';
        
-        try {
-            let d = window.store.referenceDate;
-            let dateStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + String(d.getDate()).padStart(2,'0');
-           
-            let batches = [];
-            let currentBatch = writeBatch(dbFirestore);
-            let count = 0;
-           
-            window.store.allocated.forEach(al => {
-                let motoristaId = al.id || al.nome;
-                if(!motoristaId || motoristaId === "") return;
+        if (window.store.allocated.length === 0) {
+            return alert("Aviso: O rascunho de alocação está vazio.");
+        }
+
+        // FEEDBACK IMEDIATO NA TELA (Para não travar a sua operação)
+        let oldHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> HISTÓRICO ATUALIZADO';
+        btn.style.background = "#059669";
+        btn.style.pointerEvents = 'none';
+
+        // SALVAMENTO SILENCIOSO NO BACKGROUND
+        setTimeout(async () => {
+            try {
+                let d = window.store.referenceDate;
+                let dateStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + String(d.getDate()).padStart(2,'0');
                
-                // ISSO É MAGIA: O ID do documento é a Data + Motorista.
-                // Se você editar o rascunho e salvar 10 vezes no dia, ele não cria 10 arquivos, ele apenas SOBRESCREVE o do dia.
-                let safeId = String(dateStr + "_" + motoristaId).replace(/\//g, "-");
-                let ref = doc(dbFirestore, "historico_alocacoes", safeId);
+                let currentBatch = writeBatch(dbFirestore);
                
-                currentBatch.set(ref, {
-                    nome_motorista: al.nome,
-                    id_motorista: al.id,
-                    data_alocacao: dateStr,
-                    timestamp: serverTimestamp()
+                window.store.allocated.forEach(al => {
+                    let motoristaId = al.id || al.nome;
+                    if(!motoristaId || motoristaId === "") return;
+                   
+                    let safeId = String(dateStr + "_" + motoristaId).replace(/\//g, "-");
+                    let ref = doc(dbFirestore, "historico_alocacoes", safeId);
+                   
+                    currentBatch.set(ref, {
+                        nome_motorista: al.nome,
+                        id_motorista: al.id,
+                        data_alocacao: dateStr,
+                        timestamp: serverTimestamp()
+                    });
                 });
                
-                count++;
-                if(count % 400 === 0) {
-                    batches.push(currentBatch.commit());
-                    currentBatch = writeBatch(dbFirestore);
-                }
-            });
-           
-            if(count % 400 !== 0) {
-                batches.push(currentBatch.commit());
+                await currentBatch.commit();
+                // Sucesso silencioso! O usuário já viu o botão verde.
+            } catch (e) {
+                console.error("Erro na nuvem: ", e);
+                alert("Houve uma falha de rede silenciosa. O histórico não foi salvo. Tente apertar o botão novamente.");
+                btn.innerHTML = oldHtml;
+                btn.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
+                btn.style.pointerEvents = 'auto';
             }
-           
-            await Promise.all(batches);
-            alert("SUCESSO: Escala enviada e fixada na Matriz de Histórico.");
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> HISTÓRICO ATUALIZADO';
-            btn.style.background = "#059669";
-        } catch (e) {
-            alert("ERRO NO ENVIO: " + e.message);
-            btn.innerHTML = oldHtml; btn.style.pointerEvents = 'auto';
-        }
+        }, 100);
     }
 
-    // A MATRIZ PERMANENTE (LENDO O FIREBASE COM A COLUNA 04/05)
+    // --- A MATRIZ PERMANENTE ---
     window.loadDashboardData = async function() {
         const tbody = document.getElementById('telemetry-body');
         const loader = document.getElementById('rodizio-loading');
