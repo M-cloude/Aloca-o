@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPX Cloud - Comando Central</title>
+    <title>SPX Cloud - Matriz Tática</title>
    
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -31,7 +31,6 @@
             background-attachment: fixed;
         }
        
-        /* HEADER */
         .top-bar {
             background: var(--glass); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(255,255,255,0.05);
             padding: 15px 40px; display: flex; justify-content: space-between; align-items: center;
@@ -63,9 +62,9 @@
         .upload-icon { font-size: 40px; color: var(--brand); margin-bottom: 15px; }
         #loading-overlay { display: none; margin-top: 20px; color: var(--brand); font-family: 'JetBrains Mono', monospace; font-weight: bold; letter-spacing: 1px; }
 
-        /* DASHBOARD ALOCAÇÃO RESTAURADO */
+        /* DASHBOARD ALOCAÇÃO */
         #view-dashboard { display: none; animation: slideUp 0.6s ease-out; }
-        .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
         .stat-card { background: var(--bg-card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); text-align: center; }
         .stat-val { font-size: 26px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
         .stat-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; margin-top: 5px; letter-spacing: 1px;}
@@ -102,17 +101,18 @@
         .status-free { border-left: 4px solid #10b981; }
         .badge-free { background: #10b981; color: #000; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
 
-        /* TELEMETRIA (GRID NASA) */
+        /* TELEMETRIA (GRID NASA FIXO) */
         #view-rodizio { display: none; animation: fadeIn 0.5s ease-out; }
         .telemetry-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
         .telemetry-header { background: #070b14; padding: 15px 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .telemetry-title { font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 1px; margin: 0;}
        
         .grid-cell { text-align: center; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 14px; }
-        .count-high { color: var(--neon-green); text-shadow: 0 0 10px rgba(57, 255, 20, 0.4); }
-        .count-low { color: var(--neon-red); text-shadow: 0 0 10px rgba(255, 49, 49, 0.6); }
-        .count-med { color: #fbbf24; }
-        .count-zero { color: #334155; }
+        .count-high { color: var(--neon-green); text-shadow: 0 0 10px rgba(57, 255, 20, 0.4); font-size: 16px;}
+        .count-low { color: var(--neon-red); text-shadow: 0 0 10px rgba(255, 49, 49, 0.6); font-size: 16px;}
+        .count-med { color: #fbbf24; font-size: 16px;}
+        .count-zero { color: #1e293b; } /* Quase invisivel se for zero */
+       
         .driver-col { font-weight: 600; color: #fff; background: rgba(15, 23, 42, 0.95); position: sticky; left: 0; z-index: 5; border-right: 1px solid var(--border); }
         .week-col-header { text-align: center !important; color: #cbd5e1; }
         .total-col { font-weight: 900; background: rgba(238, 77, 45, 0.05); color: #fff; text-align: center;}
@@ -139,7 +139,7 @@
 
 <div class="container">
    
-    <!-- TELA 1: ALOCAÇÃO (100% RESTAURADA) -->
+    <!-- TELA 1: ALOCAÇÃO -->
     <div id="view-alocacao">
         <div id="view-upload">
             <h1 class="hero-title">Processador de Rotas</h1>
@@ -156,9 +156,9 @@
         <div id="view-dashboard">
             <div class="stats-bar">
                 <div class="stat-card"><div class="stat-val" style="color:var(--success)" id="v-alloc">0</div><div class="stat-lbl">Rotas Atribuídas</div></div>
-                <div class="stat-card"><div class="stat-val" style="color:#f59e0b" id="v-pend">0</div><div class="stat-lbl">Rotas Órfãs</div></div>
+                <div class="stat-card"><div class="stat-val" style="color:#f59e0b" id="v-pend">0</div><div class="stat-lbl">Rotas Órfãs (Sobras)</div></div>
                 <div class="stat-card"><div class="stat-val" style="color:#3b82f6" id="v-free">0</div><div class="stat-lbl">Motoristas em Standby</div></div>
-                <div class="stat-card"><div class="stat-val" style="color:#ef4444" id="v-ign">0</div><div class="stat-lbl">Ignorados</div></div>
+                <!-- O CARD IGNORADOS FOI REMOVIDO -->
             </div>
 
             <div class="tab-nav">
@@ -201,18 +201,33 @@
         </div>
     </div>
 
-    <!-- TELA 2: MATRIZ DE HISTÓRICO -->
+    <!-- TELA 2: MATRIZ DE HISTÓRICO (COLUNAS FIXAS) -->
     <div id="view-rodizio">
         <div class="telemetry-card">
             <div class="telemetry-header">
-                <h2 class="telemetry-title"><i class="fa-solid fa-table-cells"></i> Matriz Temporal de Frequência</h2>
+                <h2 class="telemetry-title"><i class="fa-solid fa-table-cells"></i> Matriz Temporal Consolidada</h2>
                 <button class="nav-btn" style="border: 1px solid var(--border);" onclick="window.loadDashboardData()"><i class="fa-solid fa-rotate-right"></i> Sincronizar Datacenter</button>
             </div>
            
             <div style="padding: 0; overflow-x: auto;">
                 <div id="rodizio-loading" style="color: var(--brand); font-family: 'JetBrains Mono', monospace; font-weight: bold; text-align: center; padding: 40px;"><i class="fa-solid fa-circle-notch fa-spin"></i> EXTRAINDO DADOS DA NUVEM...</div>
+               
+                <!-- A TABELA AGORA É FIXA (AS SEMANAS SÃO HARDCODED COMO SOLICITADO) -->
                 <table id="telemetry-table" style="display: none; width: 100%; min-width: 800px;">
-                    <thead id="telemetry-head"></thead>
+                    <thead>
+                        <tr>
+                            <th style="width: 300px;">OPERADOR (MOTORISTA)</th>
+                            <th class="week-col-header">SEM 11/05</th>
+                            <th class="week-col-header">SEM 18/05</th>
+                            <th class="week-col-header">SEM 25/05</th>
+                            <th class="week-col-header">SEM 01/06</th>
+                            <th class="week-col-header">SEM 08/06</th>
+                            <th class="week-col-header">SEM 15/06</th>
+                            <th class="week-col-header">SEM 22/06</th>
+                            <th class="week-col-header">SEM 29/06</th>
+                            <th class="total-col">TOTAL GLOBAL</th>
+                        </tr>
+                    </thead>
                     <tbody id="telemetry-body"></tbody>
                 </table>
             </div>
@@ -223,12 +238,12 @@
 
 <div class="footer-bar hidden" id="footer-actions">
     <button class="btn-copy" onclick="window.copyCombined(this)"><i class="fa-regular fa-copy"></i> Copiar AT e ID</button>
-    <button class="btn-cloud" onclick="window.salvarNoFirebase()"><i class="fa-solid fa-database"></i> Registrar Escala no Banco de Dados</button>
+    <button class="btn-cloud" onclick="window.salvarNoFirebase()"><i class="fa-solid fa-database"></i> Registrar Escala no Banco</button>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, serverTimestamp, writeBatch, doc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, setDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBxzyFdum86noYdpQnldyjX4wiPB7IJEMY",
@@ -242,62 +257,40 @@
     const app = initializeApp(firebaseConfig);
     const dbFirestore = getFirestore(app);
 
-    // VARIÁVEIS GLOBAIS
     window.store = { allocated: [], routes: [], drivers: [], referenceDate: null };
     window.driverMap = {};
     window.allDriversList = [];
 
-    // ==========================================
-    // CÁLCULO MATEMÁTICO DE DATAS BLINDADO (UTC)
-    // ==========================================
+    // --- CÁLCULOS MATEMÁTICOS DE DATA SEM FUSO (BLINDADO) ---
     function getJsDate(cell) {
         if(!cell || !cell.v) return new Date();
-       
-        // Se já for um objeto Date criado pelo Excel (Bug do Fuso Horário)
         if(cell.v instanceof Date) {
-            // Extrai as partes em UTC direto, ignorando o fuso local que a máquina tenta aplicar
-            let y = cell.v.getUTCFullYear();
-            let m = cell.v.getUTCMonth();
-            let d = cell.v.getUTCDate();
-            return new Date(y, m, d); // Cria nova data zerada para meia-noite local correta
+            let y = cell.v.getUTCFullYear(); let m = cell.v.getUTCMonth(); let d = cell.v.getUTCDate();
+            return new Date(y, m, d);
         }
-       
-        // Se vier como texto (Ex: 04/05/2026)
         let p = String(cell.v).trim().split(/[\/\-\.]/);
         if(p.length === 3) {
-            if(p[0].length === 4) return new Date(p[0], p[1]-1, p[2]); // YYYY-MM-DD
-            return new Date(p[2], p[1]-1, p[0]); // DD-MM-YYYY
+            if(p[0].length === 4) return new Date(p[0], p[1]-1, p[2]);
+            return new Date(p[2], p[1]-1, p[0]);
         }
         return new Date();
     }
    
     function getDateCode(d) { return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`; }
 
+    // Calcula a SEGUNDA-FEIRA de qualquer data YYYY-MM-DD
     function getWeekSortKey(dateStr) {
         let [y, m, d] = dateStr.split('-');
         let dt = new Date(y, m-1, d);
-        let day = dt.getDay(); // 0 é domingo, 1 é segunda
-        let diff = dt.getDate() - day + (day === 0 ? -6 : 1); // Força para a segunda-feira daquela semana
+        let day = dt.getDay();
+        let diff = dt.getDate() - day + (day === 0 ? -6 : 1);
         let monday = new Date(dt.setDate(diff));
        
-        let fmt = (dObj) => dObj.getFullYear() + '-' + String(dObj.getMonth()+1).padStart(2,'0') + '-' + String(dObj.getDate()).padStart(2,'0');
-        return fmt(monday); // Retorna "YYYY-MM-DD" estrito
+        // Retorna sempre "DD/MM" para cruzar com as colunas fixas
+        return String(monday.getDate()).padStart(2,'0') + '/' + String(monday.getMonth()+1).padStart(2,'0');
     }
-   
-    function getWeekLabel(sortKey) {
-        let [y, m, d] = sortKey.split('-');
-        let monday = new Date(y, m-1, d);
-       
-        // Domingo é segunda + 6 dias (usamos setDate para evitar bug de horário de verão)
-        let sunday = new Date(y, m-1, d);
-        sunday.setDate(monday.getDate() + 6);
-       
-        let fmt = (dt) => String(dt.getDate()).padStart(2, '0') + '/' + String(dt.getMonth() + 1).padStart(2, '0');
-        return `${fmt(monday)} até ${fmt(sunday)}`;
-    }
-    // ==========================================
 
-    // NAVEGAÇÃO
+    // --- NAVEGAÇÃO ---
     window.switchView = function(view) {
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         event.currentTarget.classList.add('active');
@@ -318,12 +311,11 @@
         document.getElementById(id).classList.remove('hidden');
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-       
         if(id === 't1') document.getElementById('pull-area').style.display = 'block';
         else document.getElementById('pull-area').style.display = 'none';
     };
 
-    // FUNÇÕES STRINGS E MAPEAMENTO
+    // --- FUNÇÕES DE MATCH ---
     const cleanBasic = t => String(t||"").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
     function getTokens(str) { return str ? cleanBasic(str).split(/[\;\,\|\/\-\n\r]/).map(t => t.trim()).filter(t => t.length > 2) : []; }
     const isAll = (c, v) => { return ['ALL','TODOS','TODAS','QUALQUER','CURINGA','RESERVA','FOLGUISTA'].some(k => cleanBasic(c).includes(k)); };
@@ -344,7 +336,7 @@
     }
 
     function mapColumns(ws, rowIdx) {
-        let map = { rotaAt:'A', atTo:'B', letra:'C', clusterR:'AC', litragem:'T', nome:'B', id:'C', clusterM:'E', veic:'G', rodou:'H' };
+        let map = { rotaAt:'A', atTo:'B', letra:'C', clusterR:'AC', litragem:'T', nome:'B', id:'C', clusterM:'E', veic:'G' };
         let range = XLSX.utils.decode_range(ws['!ref']);
         for(let C=range.s.c; C<=range.e.c; ++C) {
             let cell = ws[XLSX.utils.encode_cell({r:rowIdx, c:C})];
@@ -361,7 +353,7 @@
         return map;
     }
 
-    // UPLOAD E LEITURA (AGORA OLHANDO A2 DA ABA MOTORISTA E CORRIGINDO FUSO HORÁRIO)
+    // --- UPLOAD ---
     document.getElementById('upl').addEventListener('change', function(e) {
         if(!e.target.files[0]) return;
         window.store = { allocated: [], routes: [], drivers: [], referenceDate: null };
@@ -380,25 +372,20 @@
                     if(sR && sM) {
                         const wsR = wb.Sheets[sR]; const wsM = wb.Sheets[sM];
                        
-                        // GARANTIA: Lê a A2 e usa a função com blindagem UTC
                         let dataCell = wsM['A2'];
                         let rawRefDate = getJsDate(dataCell);
                         window.store.referenceDate = rawRefDate;
                        
-                        // Cria string padrão "YYYY-MM-DD"
+                        // YYYY-MM-DD para o cálculo matemático
                         let fmtDateStr = rawRefDate.getFullYear() + '-' + String(rawRefDate.getMonth()+1).padStart(2,'0') + '-' + String(rawRefDate.getDate()).padStart(2,'0');
                        
-                        // Calcula a chave de ordenação baseada na segunda-feira
-                        let wKey = getWeekSortKey(fmtDateStr);
-                        document.getElementById('date-range-display').innerHTML = `DATA ALVO (Motoristas!A2): SEMANA DE ${getWeekLabel(wKey)}`;
+                        let wKey = getWeekSortKey(fmtDateStr); // Exibe ex: 11/05
+                        document.getElementById('date-range-display').innerHTML = `DATA ALVO (Motoristas!A2): CÁLCULO PARA SEMANA DA SEGUNDA FEIRA ${wKey}`;
                        
                         let rowR = findHeaderRow(wsR); let mapR = mapColumns(wsR, rowR);
                         let rowM = findHeaderRow(wsM); let mapM = mapColumns(wsM, rowM);
                        
-                        // REGRAS CIRÚRGICAS APLICADAS
-                        mapR.clusterR = 'AC';
-                        mapM.clusterM = 'E';
-                        mapM.nome = 'B';
+                        mapR.clusterR = 'AC'; mapM.clusterM = 'E'; mapM.nome = 'B';
 
                         let rawRom = XLSX.utils.sheet_to_json(wsR, {header: "A", range: rowR + 1});
                         let rawMot = XLSX.utils.sheet_to_json(wsM, {header: "A", range: rowM + 1});
@@ -413,10 +400,8 @@
         r.readAsArrayBuffer(e.target.files[0]); e.target.value = '';
     });
 
-    // MOTOR DE ALOCAÇÃO
     function runEngine(rom, mot, mapR, mapM) {
         let rotasValidas = [];
-        let ignored = 0;
         let dateCode = getDateCode(window.store.referenceDate);
 
         rom.forEach(r => {
@@ -445,7 +430,7 @@
                 window.allDriversList.push(nomeReal);
             }
 
-            if(v.includes("MOTO") || v.includes("PASSEIO") || nome.length < 2) { ignored++; return; }
+            if(v.includes("MOTO") || v.includes("PASSEIO") || nome.length < 2) return;
             let aceito = false;
             if(v.includes("FIORINO") || v.includes("VAN") || v.includes("VUC") || v.includes("UTILITARIO") || v.includes("ENTREGA")) aceito = true;
 
@@ -487,8 +472,7 @@
             });
         };
 
-        runMatch(false); // Fixos
-        runMatch(true);  // Curingas
+        runMatch(false); runMatch(true);
 
         rotasValidas.forEach(r => { if(r.st !== 'ok') window.store.routes.push(r); });
         frota.forEach(m => { if(m.disp) window.store.drivers.push(m); });
@@ -496,10 +480,8 @@
         document.getElementById('v-alloc').innerText = window.store.allocated.length;
         document.getElementById('v-pend').innerText = window.store.routes.length;
         document.getElementById('v-free').innerText = window.store.drivers.length;
-        document.getElementById('v-ign').innerText = ignored;
     }
 
-    // RENDERIZAÇÃO
     function renderScreen() {
         document.getElementById('view-upload').style.display = 'none';
         document.getElementById('view-dashboard').style.display = 'block';
@@ -628,29 +610,31 @@
         });
     }
 
-    // NUVEM: SALVAR E LER FIREBASE
+    // --- FIREBASE: SALVAR DE 1 EM 1 (SEM FALHAS) E LER GRID FIXO ---
     window.salvarNoFirebase = async function() {
         const btn = document.querySelector('.btn-cloud');
         let oldHtml = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> TRANSMITINDO DADOS...';
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> TRANSMITINDO...';
         btn.style.pointerEvents = 'none';
        
         try {
-            const batch = writeBatch(dbFirestore);
             let d = window.store.referenceDate;
             let dateStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + String(d.getDate()).padStart(2,'0');
            
+            // Loop de gravação unitária (Não dá erro de lote)
+            let promises = [];
             window.store.allocated.forEach(al => {
                 if(!al.id || al.id === "") return;
                 let ref = doc(collection(dbFirestore, "historico_alocacoes"));
-                batch.set(ref, {
+                promises.push(setDoc(ref, {
                     nome_motorista: al.nome,
                     id_motorista: al.id,
                     data_alocacao: dateStr,
                     timestamp: serverTimestamp()
-                });
+                }));
             });
-            await batch.commit();
+           
+            await Promise.all(promises);
             alert("SISTEMA ATUALIZADO: Matriz de Histórico registrada na nuvem.");
             btn.innerHTML = '<i class="fa-solid fa-check"></i> TRANSMISSÃO CONCLUÍDA';
             btn.style.background = "#059669";
@@ -660,18 +644,20 @@
         }
     }
 
+    // GRID FIXO (COLUNAS HARDCODED)
     window.loadDashboardData = async function() {
-        const table = document.getElementById('telemetry-table');
-        const thead = document.getElementById('telemetry-head');
         const tbody = document.getElementById('telemetry-body');
         const loader = document.getElementById('rodizio-loading');
+        const table = document.getElementById('telemetry-table');
        
-        loader.style.display = 'block'; table.style.display = 'none';
-        thead.innerHTML = ""; tbody.innerHTML = "";
+        loader.style.display = 'block'; table.style.display = 'none'; tbody.innerHTML = "";
        
         try {
             const snap = await getDocs(collection(dbFirestore, "historico_alocacoes"));
-            let grid = {}; let weekKeys = new Set();
+            let grid = {};
+           
+            // Semanas Fixas que você determinou
+            const weeksList = ["11/05", "18/05", "25/05", "01/06", "08/06", "15/06", "22/06", "29/06"];
            
             snap.forEach(doc => {
                 let d = doc.data();
@@ -679,37 +665,39 @@
                 let dtStr = d.data_alocacao || d.data;
                 if(!name || !dtStr) return;
                
+                // Converte a data do banco (ex: 2026-05-13) para a chave de segunda (ex: "11/05")
                 let wKey = getWeekSortKey(dtStr);
-                weekKeys.add(wKey);
                
-                if(!grid[name]) grid[name] = { total: 0, weeks: {} };
-                if(!grid[name].weeks[wKey]) grid[name].weeks[wKey] = 0;
-                grid[name].weeks[wKey]++; grid[name].total++;
+                if(!grid[name]) {
+                    grid[name] = { total: 0, weeks: {} };
+                    weeksList.forEach(w => grid[name].weeks[w] = 0); // Inicializa tudo zerado
+                }
+               
+                if(weeksList.includes(wKey)) {
+                    grid[name].weeks[wKey]++;
+                    grid[name].total++;
+                }
             });
 
-            let sortedWeeks = Array.from(weekKeys).sort();
-
-            if(sortedWeeks.length === 0) { loader.innerHTML = "SEM DADOS DE TELEMETRIA REGISTRADOS."; return; }
-
-            let trHead = document.createElement('tr');
-            trHead.innerHTML = `<th style="width: 250px;">OPERADOR (MOTORISTA)</th>`;
-            sortedWeeks.forEach(wKey => { trHead.innerHTML += `<th class="week-col-header">${getWeekLabel(wKey)}</th>`; });
-            trHead.innerHTML += `<th class="total-col">TOTAL GLOBAL</th>`;
-            thead.appendChild(trHead);
-
+            // Ordena os motoristas pelo total
             let driversArray = Object.keys(grid).sort((a,b) => grid[b].total - grid[a].total);
+
+            if(driversArray.length === 0) { loader.innerHTML = "SEM DADOS DE TELEMETRIA REGISTRADOS."; return; }
 
             driversArray.forEach(name => {
                 let tr = document.createElement('tr');
                 tr.innerHTML = `<td class="driver-col">${name}</td>`;
-                sortedWeeks.forEach(wKey => {
-                    let count = grid[name].weeks[wKey] || 0;
+               
+                weeksList.forEach(wKey => {
+                    let count = grid[name].weeks[wKey];
                     let cssClass = 'count-zero'; let displayTxt = '-';
                     if(count >= 3) { cssClass = 'count-high'; displayTxt = count; }
                     else if (count === 2) { cssClass = 'count-med'; displayTxt = count; }
                     else if (count === 1) { cssClass = 'count-low'; displayTxt = count; }
+                   
                     tr.innerHTML += `<td class="grid-cell ${cssClass}">${displayTxt}</td>`;
                 });
+               
                 tr.innerHTML += `<td class="grid-cell total-col">${grid[name].total}</td>`;
                 tbody.appendChild(tr);
             });
