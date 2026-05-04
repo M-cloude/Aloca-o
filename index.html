@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema SPX - Cloud Histórico</title>
+    <title>SPX Cloud - Telemetria de Rodízio</title>
    
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
    
     <style>
@@ -27,155 +27,171 @@
         body {
             font-family: 'Inter', sans-serif; background-color: var(--bg-body);
             margin: 0; padding: 0; color: var(--text-main); min-height: 100vh;
-            background-image: radial-gradient(at 50% 0%, #1a0806 0%, #020617 80%);
+            background-image: radial-gradient(at 50% 0%, #0a0a0a 0%, #020617 100%);
             background-attachment: fixed;
         }
        
         .top-bar {
             background: var(--glass); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(255,255,255,0.05);
             padding: 15px 40px; display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 100;
+            position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 30px rgba(0,0,0,0.5);
         }
-        .logo h1 { font-family: 'Montserrat', sans-serif; font-size: 18px; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
-        .text-shopee { color: var(--brand); font-weight: 800; }
+        .logo h1 { font-family: 'Montserrat', sans-serif; font-size: 18px; margin: 0; text-transform: uppercase; letter-spacing: 2px; }
+        .text-shopee { color: var(--brand); font-weight: 900; }
        
         .main-nav { display: flex; gap: 20px; }
         .nav-btn {
-            background: transparent; color: #94a3b8; border: none; font-size: 13px; font-weight: 600;
-            cursor: pointer; padding: 8px 16px; border-radius: 8px; transition: 0.3s;
+            background: transparent; color: #94a3b8; border: none; font-size: 12px; font-weight: 700;
+            cursor: pointer; padding: 10px 20px; border-radius: 6px; transition: 0.3s;
             text-transform: uppercase; letter-spacing: 1px; outline: none;
         }
         .nav-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
-        .nav-btn.active { color: #fff; background: rgba(238, 77, 45, 0.2); border: 1px solid rgba(238, 77, 45, 0.5); }
+        .nav-btn.active { color: #fff; background: rgba(238, 77, 45, 0.15); border: 1px solid var(--brand); box-shadow: 0 0 15px rgba(238,77,45,0.2); }
 
-        .container { max-width: 1700px; margin: 40px auto; padding: 0 20px 100px 20px; }
+        .container { max-width: 1800px; margin: 40px auto; padding: 0 20px 100px 20px; }
 
-        #view-upload { text-align: center; margin-top: 80px; }
-        .hero-title { font-family: 'Montserrat', sans-serif; font-size: 32px; font-weight: 800; margin-bottom: 10px; }
+        /* UPLOAD */
+        #view-upload { text-align: center; margin-top: 60px; animation: fadeIn 0.8s ease-out; }
+        .hero-title { font-family: 'Montserrat', sans-serif; font-size: 28px; font-weight: 900; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
         .upload-box {
-            background: rgba(30, 41, 59, 0.3); border-radius: 24px; padding: 60px;
-            border: 1px solid rgba(255,255,255,0.05); cursor: pointer; max-width: 600px; margin: 0 auto;
-            transition: 0.4s; backdrop-filter: blur(10px);
+            background: rgba(30, 41, 59, 0.4); border-radius: 16px; padding: 50px;
+            border: 1px dashed rgba(255,255,255,0.1); cursor: pointer; max-width: 500px; margin: 0 auto;
+            transition: 0.3s; backdrop-filter: blur(10px);
         }
-        .upload-box:hover { border-color: var(--brand); transform: translateY(-5px); }
-        .upload-icon { font-size: 48px; color: var(--brand); margin-bottom: 20px; }
+        .upload-box:hover { border-color: var(--brand); background: rgba(30, 41, 59, 0.6); }
+        .upload-icon { font-size: 40px; color: var(--brand); margin-bottom: 15px; }
 
-        #loading-overlay { display: none; margin-top: 20px; color: var(--brand); font-weight: bold; }
+        #loading-overlay { display: none; margin-top: 20px; color: var(--brand); font-family: 'JetBrains Mono', monospace; font-weight: bold; letter-spacing: 1px; }
 
+        /* DASHBOARD ALOCACAO */
         #view-dashboard { display: none; animation: slideUp 0.6s ease-out; }
-        .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
-        .stat-val { font-size: 24px; font-weight: 700; font-family: 'Montserrat', sans-serif; }
-        .stat-lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-top: 5px; }
+        .stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--bg-card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); text-align: center; }
+        .stat-val { font-size: 26px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+        .stat-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; margin-top: 5px; letter-spacing: 1px;}
 
         .tab-nav { display: flex; gap: 5px; margin-bottom: 0; }
-        .tab-btn { padding: 12px 25px; background: var(--bg-card); border: 1px solid var(--border); border-bottom: none; color: var(--text-muted); border-radius: 10px 10px 0 0; cursor: pointer; font-weight: 600; font-size: 11px; text-transform: uppercase; }
+        .tab-btn { padding: 12px 25px; background: var(--bg-card); border: 1px solid var(--border); border-bottom: none; color: var(--text-muted); border-radius: 8px 8px 0 0; cursor: pointer; font-weight: 700; font-size: 11px; text-transform: uppercase; }
         .tab-btn.active { background: var(--brand); color: #fff; border-color: var(--brand); }
        
-        .table-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 0 12px 12px 12px; padding: 0; overflow: hidden; height: 650px; display: flex; flex-direction: column; }
+        .table-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 0 8px 8px 8px; padding: 0; overflow: hidden; height: 650px; display: flex; flex-direction: column; }
         .table-scroll { overflow: auto; flex-grow: 1; position: relative; }
        
         table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
-        th { position: sticky; top: 0; background: #0b1120; color: #94a3b8; padding: 15px 12px; text-align: left; font-size: 10px; text-transform: uppercase; border-bottom: 2px solid var(--border); z-index: 10; font-weight: 700; }
-        td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: #e2e8f0; vertical-align: middle; }
+        th { position: sticky; top: 0; background: #070b14; color: #94a3b8; padding: 12px 15px; text-align: left; font-size: 10px; text-transform: uppercase; border-bottom: 1px solid var(--border); z-index: 10; font-weight: 800; letter-spacing: 1px;}
+        td { padding: 10px 15px; border-bottom: 1px solid #162032; color: #e2e8f0; vertical-align: middle; }
+        tr:hover { background: rgba(255, 255, 255, 0.02) !important; }
 
-        #view-rodizio { display: none; }
-        .rodizio-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .dash-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 25px; }
-        .leaderboard-list { list-style: none; padding: 0; margin: 0; }
-        .leaderboard-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border); }
+        /* TELEMETRIA (GRID) */
+        #view-rodizio { display: none; animation: fadeIn 0.5s ease-out; }
+        .telemetry-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        .telemetry-header { background: #070b14; padding: 15px 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .telemetry-title { font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 1px; margin: 0;}
        
-        /* ESTILOS DE CORES DO DASHBOARD */
-        .count-high { color: var(--neon-green); text-shadow: 0 0 8px rgba(57, 255, 20, 0.5); font-weight: 800; font-size: 16px; }
-        .count-low { color: var(--neon-red); text-shadow: 0 0 8px rgba(255, 49, 49, 0.5); font-weight: 800; font-size: 16px; }
-        .count-med { color: #fbbf24; font-weight: 800; font-size: 16px; }
+        /* ESTILOS DE CORES NEON (NASA GRID) */
+        .grid-cell { text-align: center; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 14px; }
+        .count-high { color: var(--neon-green); text-shadow: 0 0 10px rgba(57, 255, 20, 0.4); }
+        .count-low { color: var(--neon-red); text-shadow: 0 0 10px rgba(255, 49, 49, 0.6); }
+        .count-med { color: #fbbf24; }
+        .count-zero { color: #334155; }
+       
+        .driver-col { font-weight: 600; color: #fff; background: rgba(15, 23, 42, 0.95); position: sticky; left: 0; z-index: 5; border-right: 1px solid var(--border); }
+        .week-col-header { text-align: center !important; color: #cbd5e1; }
+        .total-col { font-weight: 900; background: rgba(238, 77, 45, 0.05); color: #fff; text-align: center;}
 
-        .footer-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); padding: 15px 30px; border-top: 1px solid var(--border); display: flex; justify-content: center; align-items: center; z-index: 2000; gap: 15px; }
-        .btn-cloud { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer; text-transform: uppercase; }
+        /* FOOTER */
+        .footer-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #070b14; padding: 15px 30px; border-top: 1px solid var(--border); display: flex; justify-content: center; align-items: center; z-index: 2000; gap: 15px; }
+        .btn-cloud { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 30px; border-radius: 6px; font-weight: 800; font-size: 12px; cursor: pointer; text-transform: uppercase; display: flex; align-items: center; gap: 8px; letter-spacing: 1px; }
 
-        .edit-input { background: transparent; border: 1px solid transparent; color: #fff; width: 100%; padding: 6px; font-size: 12px; border-radius: 4px; outline: none; }
-        .custom-popup { position: absolute; background: #1e293b; border: 1px solid #334155; width: 500px; max-height: 400px; overflow-y: auto; z-index: 9999; box-shadow: 0 20px 60px rgba(0,0,0,0.8); border-radius: 8px; font-size: 13px; }
-        .popup-item { padding: 12px 18px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; }
-        .popup-item:hover { background: var(--brand); color: white !important; }
-
+        .hidden { display: none !important; }
+        @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
         @keyframes slideUp { from{transform:translateY(40px);opacity:0} to{transform:translateY(0);opacity:1} }
     </style>
 </head>
 <body>
 
 <div class="top-bar">
-    <div style="display:flex; align-items:center;">
-        <div class="logo"><h1>Sistema <span class="text-shopee">SPX</span> Cloud</h1></div>
-    </div>
+    <div class="logo"><h1><i class="fa-solid fa-satellite-dish" style="color:var(--brand); margin-right:8px;"></i> SPX <span style="color:#fff; font-weight:400;">COMMAND CENTER</span></h1></div>
     <div class="main-nav">
-        <button class="nav-btn active" onclick="window.switchView('alocacao')">1. Alocação</button>
-        <button class="nav-btn" onclick="window.switchView('rodizio')">2. Histórico Semanal</button>
+        <button class="nav-btn active" onclick="window.switchView('alocacao')">1. Motor de Alocação</button>
+        <button class="nav-btn" onclick="window.switchView('rodizio')">2. Matriz de Histórico Semanal</button>
     </div>
 </div>
 
 <div class="container">
    
+    <!-- TELA 1: ALOCAÇÃO -->
     <div id="view-alocacao">
         <div id="view-upload">
-            <h1 class="hero-title">Alocação Inteligente</h1>
-            <div id="date-range-display" style="color: var(--success); font-weight: bold; margin-bottom: 25px; font-size: 14px;"></div>
+            <h1 class="hero-title">Processador de Rotas</h1>
+            <div id="date-range-display" style="color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-size: 12px; margin-bottom: 25px;">AGUARDANDO UPLOAD DA PLANILHA...</div>
             <div class="upload-box" onclick="document.getElementById('upl').click()">
-                <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-                <h2 style="margin:0 0 10px 0; font-size: 18px; font-weight:700;">Importar Romaneio e Motoristas</h2>
-                <p style="margin:0; color:#94a3b8; font-size: 12px;">Referência de Data: Motoristas!A2</p>
+                <i class="fa-solid fa-file-excel upload-icon"></i>
+                <h2 style="margin:0 0 10px 0; font-size: 16px; font-weight:700;">IMPORTAR DADOS DA OPERAÇÃO</h2>
+                <p style="margin:0; color:#94a3b8; font-size: 11px;">Match Romaneio (Col AC) vs Motoristas (Col E)</p>
                 <input type="file" id="upl" accept=".xlsx" style="display:none">
             </div>
-            <div id="loading-overlay"><i class="fa-solid fa-spinner fa-spin"></i> PROCESSANDO...</div>
+            <div id="loading-overlay"><i class="fa-solid fa-circle-notch fa-spin"></i> CALCULANDO MATRIZ DE ALOCAÇÃO...</div>
         </div>
 
         <div id="view-dashboard">
             <div class="stats-bar">
-                <div class="stat-card"><div class="stat-val" style="color:var(--success)" id="v-alloc">0</div><div class="stat-lbl">Alocados</div></div>
-                <div class="stat-card"><div class="stat-val" style="color:#f59e0b" id="v-pend">0</div><div class="stat-lbl">Pendentes</div></div>
-                <div class="stat-card"><div class="stat-val" style="color:#3b82f6" id="v-free">0</div><div class="stat-lbl">Livres</div></div>
+                <div class="stat-card"><div class="stat-val" style="color:var(--success)" id="v-alloc">0</div><div class="stat-lbl">Rotas Atribuídas</div></div>
+                <div class="stat-card"><div class="stat-val" style="color:#f59e0b" id="v-pend">0</div><div class="stat-lbl">Rotas Órfãs</div></div>
+                <div class="stat-card"><div class="stat-val" style="color:#3b82f6" id="v-free">0</div><div class="stat-lbl">Motoristas em Standby</div></div>
             </div>
 
             <div class="tab-nav">
-                <button class="tab-btn active" onclick="window.nav('t1', this)">✅ ALOCADOS</button>
-                <button class="tab-btn" onclick="window.nav('t2', this)">⚠️ SOBRAS</button>
-                <button class="tab-btn" onclick="window.nav('t3', this)">🚚 LIVRES</button>
+                <button class="tab-btn active" onclick="window.nav('t1', this)">ESCUDO DE ALOCAÇÃO</button>
+                <button class="tab-btn" onclick="window.nav('t2', this)">SOBRAS DETECTADAS</button>
             </div>
 
             <div class="table-wrap">
                 <div class="table-scroll">
                     <table id="t1">
                         <thead><tr>
-                            <th>Del</th><th>#</th><th>Rota AT</th><th>AT / TO</th><th>Litragem</th>
-                            <th>Motorista</th><th>ID</th><th>Veículo</th><th>Letra</th>
-                            <th>Tipo Match</th><th style="color:var(--success)">Cluster (AC)</th>
+                            <th style="width: 50px;">Rota</th>
+                            <th style="width: 100px;">AT / TO</th>
+                            <th style="width: 60px;">Litros</th>
+                            <th style="width: 250px;">Operador (Motorista)</th>
+                            <th style="width: 80px;">ID Tático</th>
+                            <th>Veículo</th>
+                            <th style="color:var(--brand)">Match Ref (AC)</th>
                         </tr></thead>
                         <tbody id="b-alocados"></tbody>
                     </table>
-                    <table id="t2" class="hidden"><thead><tr><th>Rota</th><th>AT</th><th>Litragem</th><th>Cluster</th></tr></thead><tbody id="b-rotas"></tbody></table>
-                    <table id="t3" class="hidden"><thead><tr><th>Nome</th><th>ID</th><th>Veículo</th><th>Clusters</th></tr></thead><tbody id="b-mot"></tbody></table>
+                    <table id="t2" class="hidden"><thead><tr><th>Rota</th><th>AT</th><th>Litragem</th><th>Cluster Alvo</th></tr></thead><tbody id="b-rotas"></tbody></table>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- TELA 2: MATRIZ DE HISTÓRICO (DASHBOARD) -->
     <div id="view-rodizio">
-        <div class="rodizio-header">
-            <div>
-                <h1 class="hero-title" style="margin:0;">Histórico de Escalas</h1>
-                <p id="week-header-text" style="color:#94a3b8; margin: 5px 0 0 0; font-size: 13px;">Carregando período...</p>
+        <div class="telemetry-card">
+            <div class="telemetry-header">
+                <h2 class="telemetry-title"><i class="fa-solid fa-table-cells"></i> Matriz Temporal de Frequência</h2>
+                <button class="nav-btn" style="border: 1px solid var(--border);" onclick="window.loadDashboardData()"><i class="fa-solid fa-rotate-right"></i> Sincronizar Datacenter</button>
             </div>
-            <button class="nav-btn active" onclick="window.loadDashboardData()"><i class="fa-solid fa-rotate"></i> Sincronizar Nuvem</button>
-        </div>
-        <div class="dash-card">
-            <div id="rodizio-loading" style="color: var(--brand); font-weight: bold; text-align: center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> BUSCANDO NO FIRESTORE...</div>
-            <ul class="leaderboard-list" id="leaderboard-list"></ul>
+           
+            <div style="padding: 0; overflow-x: auto;">
+                <div id="rodizio-loading" style="color: var(--brand); font-family: 'JetBrains Mono', monospace; font-weight: bold; text-align: center; padding: 40px;"><i class="fa-solid fa-circle-notch fa-spin"></i> EXTRAINDO DADOS DA NUVEM...</div>
+                <table id="telemetry-table" style="display: none; width: 100%; min-width: 800px;">
+                    <thead id="telemetry-head">
+                        <!-- Gerado via JS -->
+                    </thead>
+                    <tbody id="telemetry-body">
+                        <!-- Gerado via JS -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
 </div>
 
 <div class="footer-bar hidden" id="footer-actions">
-    <button class="btn-cloud" onclick="window.salvarNoFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> Salvar na Nuvem</button>
+    <button class="btn-cloud" onclick="window.salvarNoFirebase()"><i class="fa-solid fa-database"></i> Registrar Escala no Banco de Dados</button>
 </div>
 
 <script type="module">
@@ -194,18 +210,37 @@
     const app = initializeApp(firebaseConfig);
     const dbFirestore = getFirestore(app);
 
-    window.store = { allocated: [], routes: [], drivers: [], filename: "", referenceDate: null };
-    window.driverMap = {}; window.allDriversList = [];
+    window.store = { allocated: [], routes: [], drivers: [], referenceDate: null };
 
-    // LÓGICA DE DATA SEMANAL
-    function getWeekRange(date) {
-        let d = new Date(date);
-        let day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6:1);
-        let monday = new Date(d.setDate(diff));
-        let sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
-        return `${monday.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'})} até ${sunday.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'})}`;
+    // --- FUNÇÕES DE DATA E SEMANA (NÚCLEO MATEMÁTICO) ---
+    function getJsDate(cell) {
+        if(!cell || !cell.v) return new Date();
+        if(cell.v instanceof Date) return cell.v;
+        let p = String(cell.v).trim().split(/[\/\-\.]/);
+        if(p.length===3) return new Date(p[2], p[1]-1, p[0]);
+        return new Date();
     }
 
+    // Retorna a "chave" da semana (Data da Segunda-feira) para ordenação correta no banco
+    function getWeekSortKey(dateObj) {
+        let d = new Date(dateObj);
+        d.setHours(0,0,0,0);
+        let day = d.getDay();
+        let diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        let monday = new Date(d.setDate(diff));
+        return monday.toISOString().split('T')[0]; // Ex: 2026-05-04
+    }
+
+    // Transforma a chave "2026-05-04" em label "04/05 até 10/05"
+    function getWeekLabel(sortKey) {
+        let [y, m, d] = sortKey.split('-');
+        let monday = new Date(y, m-1, d);
+        let sunday = new Date(monday.getTime() + (6 * 24 * 60 * 60 * 1000));
+        let fmt = (dt) => String(dt.getDate()).padStart(2, '0') + '/' + String(dt.getMonth() + 1).padStart(2, '0');
+        return `${fmt(monday)} até ${fmt(sunday)}`;
+    }
+
+    // --- NAVEGAÇÃO ---
     window.switchView = function(view) {
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         if(view === 'alocacao') {
@@ -221,12 +256,13 @@
     }
 
     window.nav = function(id, btn) {
-        ['t1', 't2', 't3'].forEach(t => document.getElementById(t).classList.add('hidden'));
+        ['t1', 't2'].forEach(t => document.getElementById(t).classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
     };
 
+    // --- MATCH ENGINE ---
     const cleanBasic = t => String(t||"").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
     function getTokens(str) { return str ? cleanBasic(str).split(/[\;\,\|\/\-\n\r]/).map(t => t.trim()).filter(t => t.length > 2) : []; }
 
@@ -235,37 +271,47 @@
         document.getElementById('loading-overlay').style.display = 'block';
         const r = new FileReader();
         r.onload = function(evt) {
-            const wb = XLSX.read(evt.target.result, {type: 'array', cellDates: true});
-            const sR = wb.SheetNames.find(n => n.match(/romaneio/i));
-            const sM = wb.SheetNames.find(n => n.match(/motorista/i));
-            if(sR && sM) {
-                const wsM = wb.Sheets[sM];
-                let rawRefDate = wsM['A2'] ? wsM['A2'].v : new Date();
-                window.store.referenceDate = rawRefDate;
-                document.getElementById('date-range-display').innerHTML = `📅 Semana de Operação: ${getWeekRange(rawRefDate)}`;
-                document.getElementById('week-header-text').innerHTML = `Período: ${getWeekRange(rawRefDate)}`;
+            setTimeout(() => {
+                const wb = XLSX.read(evt.target.result, {type: 'array', cellDates: true});
+                const sR = wb.SheetNames.find(n => n.match(/romaneio/i));
+                const sM = wb.SheetNames.find(n => n.match(/motorista/i));
+               
+                if(sR && sM) {
+                    const wsM = wb.Sheets[sM];
+                    let rawRefDate = wsM['A2'] ? getJsDate(wsM['A2']) : new Date();
+                    window.store.referenceDate = rawRefDate;
+                   
+                    let wKey = getWeekSortKey(rawRefDate);
+                    document.getElementById('date-range-display').innerHTML = `DATA ALVO DA OPERAÇÃO DETECTADA: SEMANA DE ${getWeekLabel(wKey)}`;
 
-                let rawRom = XLSX.utils.sheet_to_json(wb.Sheets[sR], {header: "A", range: 1});
-                let rawMot = XLSX.utils.sheet_to_json(wsM, {header: "A", range: 1});
-                runEngine(rawRom, rawMot);
-                renderScreen();
-            }
-            document.getElementById('loading-overlay').style.display = 'none';
+                    let rawRom = XLSX.utils.sheet_to_json(wb.Sheets[sR], {header: "A", range: 1});
+                    let rawMot = XLSX.utils.sheet_to_json(wsM, {header: "A", range: 1});
+                    runEngine(rawRom, rawMot);
+                    renderScreen();
+                }
+                document.getElementById('loading-overlay').style.display = 'none';
+            }, 100);
         };
         r.readAsArrayBuffer(e.target.files[0]);
     });
 
     function runEngine(rom, mot) {
         window.store.allocated = []; window.store.routes = []; window.store.drivers = [];
+       
         let dateCode = window.store.referenceDate.getFullYear() + String(window.store.referenceDate.getMonth()+1).padStart(2,'0') + String(window.store.referenceDate.getDate()).padStart(2,'0');
        
-        let validRoutes = rom.filter(r => r['B'] && String(r['B']).includes(dateCode)).map(r => ({
-            id: String(r['A']).includes('Rota') ? r['A'] : 'Rota '+r['A'], at: r['B'], letra: r['C'], cluster: r['AC'], litragem: r['T']||'-', st:'p'
+        let validRoutes = rom.filter(r => r['B'] && String(r['B']).toUpperCase().includes(dateCode)).map(r => ({
+            id: String(r['A']).includes('Rota') ? r['A'] : 'Rota '+r['A'],
+            at: r['B'], letra: r['C']||'-', cluster: String(r['AC']||""), litragem: r['T']||'-', st:'p'
         }));
 
-        let frota = mot.filter(m => m['A'] && !String(m['G']).toUpperCase().includes('MOTO')).map(m => ({
-            nome: String(m['B']).trim(), id: m['C'], cluster: String(m['E']), veic: m['G'], disp: true, isAll: ['ALL','CURINGA','TODOS'].some(k => String(m['E']).toUpperCase().includes(k))
+        let frota = mot.filter(m => m['B'] && !String(m['G']).toUpperCase().includes('MOTO') && !String(m['B']).toUpperCase().includes('NOME')).map(m => ({
+            nome: String(m['B']).trim(), id: m['C'], cluster: String(m['E']||""), veic: m['G']||"-", disp: true,
+            isAll: ['ALL','CURINGA','TODOS'].some(k => String(m['E']||"").toUpperCase().includes(k))
         }));
+
+        // Shuffle manual para garantir rodízio
+        frota.sort(()=>Math.random()-0.5);
 
         const match = (forceAll) => {
             validRoutes.forEach(r => {
@@ -274,65 +320,172 @@
                     if(!m.disp || m.isAll !== forceAll) continue;
                     let found = forceAll || getTokens(m.cluster).some(t => cleanBasic(r.cluster).includes(t));
                     if(found) {
-                        window.store.allocated.push({...r, nome: m.nome, id: m.id, veic: m.veic, matchType: forceAll?'Curinga':'Fixo'});
+                        window.store.allocated.push({...r, nome: m.nome, id_mot: m.id, veic: m.veic, matchType: forceAll?'Curinga':'Fixo'});
                         m.disp = false; r.st = 'o'; break;
                     }
                 }
             });
         }
-        match(false); match(true);
+       
+        match(false); // Estrito Fiel a E vs AC
+        match(true);  // Curingas
+       
         validRoutes.forEach(r => { if(r.st !== 'o') window.store.routes.push(r); });
         frota.forEach(m => { if(m.disp) window.store.drivers.push(m); });
+       
         document.getElementById('v-alloc').innerText = window.store.allocated.length;
+        document.getElementById('v-pend').innerText = window.store.routes.length;
+        document.getElementById('v-free').innerText = window.store.drivers.length;
     }
 
     function renderScreen() {
         document.getElementById('view-upload').style.display = 'none';
         document.getElementById('view-dashboard').style.display = 'block';
         document.getElementById('footer-actions').classList.remove('hidden');
+       
         let h = "";
         window.store.allocated.forEach((r,i) => {
-            h += `<tr><td><button style="border:none;background:none;color:red;cursor:pointer" onclick="window.delRow(${i})">X</button></td><td>${i+1}</td><td>${r.id}</td><td>${r.at}</td><td>${r.litragem}</td><td>${r.nome}</td><td>${r.id_mot||r.id}</td><td>${r.veic}</td><td>${r.letra}</td><td>${r.matchType}</td><td style="color:var(--success)">${r.cluster}</td></tr>`;
+            h += `<tr>
+                <td>${r.id}</td>
+                <td>${r.at}</td>
+                <td style="color:#a5f3fc;">${r.litragem}</td>
+                <td style="font-weight:bold;">${r.nome}</td>
+                <td style="color:#94a3b8;">${r.id_mot||'-'}</td>
+                <td>${r.veic}</td>
+                <td style="color:var(--success); font-weight:800;">${r.cluster}</td>
+            </tr>`;
         });
         document.getElementById('b-alocados').innerHTML = h;
+
+        let h2 = "";
+        window.store.routes.forEach(r => { h2 += `<tr><td>${r.id}</td><td>${r.at}</td><td>${r.litragem}</td><td style="color:var(--neon-red); font-weight:bold;">${r.cluster}</td></tr>`; });
+        document.getElementById('b-rotas').innerHTML = h2;
     }
 
+    // --- MÓDULO NUVEM (FIREBASE + GRID SHEET) ---
     window.salvarNoFirebase = async function() {
         const btn = document.querySelector('.btn-cloud');
-        btn.innerHTML = 'GRAVANDO...';
+        let oldHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> TRANSMITINDO DADOS...';
+        btn.style.pointerEvents = 'none';
+       
         try {
             const batch = writeBatch(dbFirestore);
+           
+            // Formatamos a data real da operação que estava na planilha
+            let d = window.store.referenceDate;
+            let dateStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + String(d.getDate()).padStart(2,'0');
+           
             window.store.allocated.forEach(al => {
-                let d = doc(collection(dbFirestore, "historico_alocacoes"));
-                batch.set(d, { nome: al.nome, id: al.id, data: window.store.referenceDate.toISOString().split('T')[0], ts: serverTimestamp() });
+                if(!al.id_mot) return;
+                let ref = doc(collection(dbFirestore, "historico_alocacoes"));
+                batch.set(ref, {
+                    nome: al.nome,
+                    id_motorista: al.id_mot,
+                    data_alocacao: dateStr, // Salva a data real da aba
+                    timestamp: serverTimestamp()
+                });
             });
             await batch.commit();
-            alert("HISTÓRICO SALVO!");
-            btn.innerHTML = 'SALVO COM SUCESSO';
-        } catch (e) { alert("ERRO: " + e.message); }
+            alert("SISTEMA ATUALIZADO: Matriz de Histórico registrada na nuvem com sucesso.");
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> TRANSMISSÃO CONCLUÍDA';
+            btn.style.background = "#059669";
+        } catch (e) {
+            alert("FALHA DE TRANSMISSÃO: " + e.message);
+            btn.innerHTML = oldHtml; btn.style.pointerEvents = 'auto';
+        }
     }
 
+    // O CÉREBRO DA MATRIZ NASA
     window.loadDashboardData = async function() {
-        const list = document.getElementById('leaderboard-list');
-        document.getElementById('rodizio-loading').style.display = 'block';
-        list.innerHTML = "";
+        const table = document.getElementById('telemetry-table');
+        const thead = document.getElementById('telemetry-head');
+        const tbody = document.getElementById('telemetry-body');
+        const loader = document.getElementById('rodizio-loading');
+       
+        loader.style.display = 'block';
+        table.style.display = 'none';
+        thead.innerHTML = ""; tbody.innerHTML = "";
+       
         try {
             const snap = await getDocs(collection(dbFirestore, "historico_alocacoes"));
-            let counts = {};
+           
+            let grid = {}; // Motorista -> Semana -> Contagem
+            let weekKeys = new Set(); // Guarda as chaves (ex: 2026-05-04) unicas
+           
             snap.forEach(doc => {
                 let d = doc.data();
-                counts[d.nome] = (counts[d.nome] || 0) + 1;
+                let name = d.nome_motorista || d.nome;
+                let dtStr = d.data_alocacao || d.data;
+               
+                if(!name || !dtStr) return;
+               
+                // Pega a segunda feira daquela data
+                let wKey = getWeekSortKey(dtStr);
+                weekKeys.add(wKey);
+               
+                if(!grid[name]) grid[name] = { total: 0, weeks: {} };
+                if(!grid[name].weeks[wKey]) grid[name].weeks[wKey] = 0;
+               
+                grid[name].weeks[wKey]++;
+                grid[name].total++;
             });
-            let sorted = Object.keys(counts).map(n => ({nome: n, qtd: counts[n]})).sort((a,b) => b.qtd - a.qtd);
-            sorted.forEach(m => {
-                let cls = m.qtd >= 3 ? 'count-high' : (m.qtd <= 1 ? 'count-low' : 'count-med');
-                list.innerHTML += `<li class="leaderboard-item"><div><span class="driver-name">${m.nome}</span></div><div class="${cls}">${m.qtd} ESCALAS</div></li>`;
-            });
-            document.getElementById('rodizio-loading').style.display = 'none';
-        } catch(e) { document.getElementById('rodizio-loading').innerHTML = "ERRO AO CARREGAR."; }
-    }
 
-    window.delRow = (idx) => { window.store.allocated.splice(idx, 1); renderScreen(); };
+            // Converte Set para Array e ordena cronologicamente
+            let sortedWeeks = Array.from(weekKeys).sort();
+
+            if(sortedWeeks.length === 0) {
+                loader.innerHTML = "SEM DADOS DE TELEMETRIA REGISTRADOS.";
+                return;
+            }
+
+            // --- 1. CONSTRUIR CABEÇALHO (COLUNAS) ---
+            let trHead = document.createElement('tr');
+            trHead.innerHTML = `<th style="width: 250px;">OPERADOR (MOTORISTA)</th>`;
+           
+            sortedWeeks.forEach(wKey => {
+                let label = getWeekLabel(wKey);
+                trHead.innerHTML += `<th class="week-col-header">${label}</th>`;
+            });
+            trHead.innerHTML += `<th class="total-col">TOTAL GLOBAL</th>`;
+            thead.appendChild(trHead);
+
+            // --- 2. CONSTRUIR CORPO (LINHAS) ---
+            // Ordenar motoristas do maior total para o menor
+            let driversArray = Object.keys(grid).sort((a,b) => grid[b].total - grid[a].total);
+
+            driversArray.forEach(name => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `<td class="driver-col">${name}</td>`;
+               
+                // Preenche as colunas de cada semana
+                sortedWeeks.forEach(wKey => {
+                    let count = grid[name].weeks[wKey] || 0;
+                   
+                    // Lógica de Cores Neon
+                    let cssClass = 'count-zero';
+                    let displayTxt = '-';
+                   
+                    if(count >= 3) { cssClass = 'count-high'; displayTxt = count; }
+                    else if (count === 2) { cssClass = 'count-med'; displayTxt = count; }
+                    else if (count === 1) { cssClass = 'count-low'; displayTxt = count; }
+
+                    tr.innerHTML += `<td class="grid-cell ${cssClass}">${displayTxt}</td>`;
+                });
+               
+                // Total Global
+                tr.innerHTML += `<td class="grid-cell total-col">${grid[name].total}</td>`;
+                tbody.appendChild(tr);
+            });
+
+            loader.style.display = 'none';
+            table.style.display = 'table';
+
+        } catch(e) {
+            console.error(e);
+            loader.innerHTML = "FALHA CRÍTICA DE COMUNICAÇÃO COM O DATACENTER.";
+        }
+    }
 </script>
 
 </body>
