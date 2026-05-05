@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alocação de Utilitários (Firebase + Sistema de Rejeição)</title>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <title>Alocação de Utilitários (Sistema de Recusas Neon)</title>
+    <script src=" https://cdn.jsdelivr.net/ npm/xlsx-js-style@1.2.0/dist/ xlsx.bundle.js "></script>
+    <link href=" https://fonts. googleapis.com/css2?family= Inter:wght@400;500;600&family= Montserrat:wght@400;600;700; 800&display=swap " rel="stylesheet">
+    <link href=" https://cdnjs. cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css " rel="stylesheet">
    
-    <!-- FIREBASE SDKs (Compat version para rodar direto no HTML) -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <!-- SDKs do FIREBASE -->
+    <script src=" https://www.gstatic.com/ firebasejs/8.10.1/firebase- app.js " ></script>
+    <script src=" https://www.gstatic.com/ firebasejs/8.10.1/firebase- database.js "></script>
 
     <style>
         :root {
@@ -33,17 +33,17 @@
             background-attachment: fixed;
         }
        
-        /* HEADER */
+        /* CABEÇALHO */
         .top-bar {
             background: var(--glass);
             backdrop-filter: blur(15px);
             border-bottom: 1px solid rgba(255,255,255,0.05);
             padding: 15px 40px; display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 100;
+            position: sticky; topo: 0; z-index: 100;
         }
         .logo h1 { font-family: 'Montserrat', sans-serif; font-size: 18px; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
         .text-shopee { color: var(--brand); font-weight: 800; }
-        .mascot-mini { width: 30px; height: auto; margin-right: 10px; vertical-align: middle; filter: drop-shadow(0 0 5px rgba(238,77,45,0.5)); }
+        .mascot-mini { width: 30px; height: auto; margin-right: 10px; vertical-align:meio; filtro: sombra-projetada(0 0 5px rgba(238,77,45,0.5)); }
 
         .btn-top-back {
             background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1;
@@ -67,15 +67,15 @@
         .upload-box {
             background: rgba(30, 41, 59, 0.3);
             border-radius: 24px; padding: 60px;
-            border: 1px solid rgba(255,255,255,0.05);
-            cursor: pointer; max-width: 600px; margin: 0 auto;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative; overflow: hidden;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 20px 50px -10px rgba(0,0,0,0.5);
+            borda: 1px sólida rgba(255,255,255,0.05);
+            cursor: ponteiro; largura máxima: 600px; margem: 0 auto;
+            transição: todas 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            posição: relativa; transbordamento: oculto;
+            filtro de fundo: desfoque(10px);
+            sombra da caixa: 0 20px 50px -10px rgba(0,0,0,0.5);
         }
-        .upload-box:hover { border-color: var(--brand); transform: translateY(-5px); box-shadow: 0 30px 60px -12px rgba(238, 77, 45, 0.15); }
-        .upload-icon { font-size: 48px; color: var(--brand); margin-bottom: 20px; }
+        .upload-box:hover { cor da borda: var(--brand); transformação: translateY(-5px); sombra da caixa: 0 30px 60px -12px rgba(238, 77, 45, 0.15); }
+        .upload-icon { tamanho da fonte: 48px; cor: var(--brand); margem inferior: 20px; }
 
         #loading-overlay {
             display: none; margin-top: 20px; color: var(--brand); font-weight: bold; font-family: 'Montserrat';
@@ -86,22 +86,22 @@
         .switch-label { font-size: 13px; color: #cbd5e1; display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
         .switch-label input { accent-color: var(--brand); transform: scale(1.1); cursor: pointer; }
 
-        /* DASHBOARD */
+        /* PAINEL */
         #view-dashboard { display: none; animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
        
         .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
         .stat-card {
             background: var(--bg-card); padding: 20px; border-radius: 12px;
-            border: 1px solid var(--border); text-align: center;
+            borda: 1px sólida var(--border); alinhamento de texto: centro;
         }
-        .stat-val { font-size: 24px; font-weight: 700; font-family: 'Montserrat', sans-serif; }
-        .stat-lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-top: 5px; }
+        .stat-val { tamanho da fonte: 24px; peso da fonte: 700; família da fonte: 'Montserrat', sans-serif; }
+        .stat-lbl { tamanho da fonte: 11px; cor: var(--text-muted); transformação de texto: maiúsculas; margem superior: 5px; }
 
-        .tab-nav { display: flex; gap: 5px; margin-bottom: 0; }
+        .tab-nav { exibição: flexível; espaçamento: 5px; margem inferior: 0; }
         .tab-btn {
-            padding: 12px 25px; background: var(--bg-card); border: 1px solid var(--border); border-bottom: none;
-            color: var(--text-muted); border-radius: 10px 10px 0 0; cursor: pointer; font-weight: 600;
-            font-size: 11px; transition: 0.2s; text-transform: uppercase;
+            preenchimento: 12px 25px; fundo: var(--bg-card); borda: 1px sólida var(--border); borda inferior: nenhuma;
+            cor: var(--text-muted); raio da borda: 10px 10px 0 0; cursor: ponteiro; peso da fonte: 600;
+            tamanho da fonte: 11px; transition: 0.2s; text-transform: uppercase;
         }
         .tab-btn.active { background: var(--brand); color: #fff; border-color: var(--brand); }
        
@@ -127,7 +127,6 @@
         .tag-fixo { background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 10px; border: 1px solid rgba(16, 185, 129, 0.3); }
         .tag-curinga { background: rgba(168, 85, 247, 0.2); color: #c084fc; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 10px; border: 1px solid rgba(168, 85, 247, 0.3); }
        
-        /* NOVO: ESTILOS PARA REJEIÇÃO */
         .checkbox-reject { accent-color: #ff003c; width: 16px; height: 16px; cursor: pointer; }
         .text-neon-red {
             color: #ff003c !important;
@@ -135,7 +134,7 @@
             font-weight: 900; font-size: 15px;
         }
 
-        /* FOOTER */
+        /* RODAPÉ */
         .footer-bar {
             position: fixed; bottom: 0; left: 0; width: 100%;
             background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
@@ -145,15 +144,15 @@
        
         .btn-copy {
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 700; font-size: 12px;
-            cursor: pointer; display: flex; align-items: center; gap: 8px; text-transform: uppercase;
-            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); transition: 0.3s;
+            color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 700; tamanho da fonte: 12px;
+            cursor: ponteiro; exibição: flexível; alinhamento de itens: centro; espaçamento: 8px; transformação de texto: maiúsculas;
+            sombra da caixa: 0 4px 15px rgba(37, 99, 235, 0.3); transição: 0.3s;
         }
-        .btn-copy:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(37, 99, 235, 0.5); }
+        .btn-copy:hover { transformação: translateY(-2px); sombra da caixa: 0 8px 25px rgba(37, 99, 235, 0.5); }
 
         .btn-add-driver {
-            background: #10b981; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: 700; font-size: 12px;
-            cursor: pointer; display: flex; align-items: center; gap: 8px; text-transform: uppercase; margin-right: 15px;
+            fundo: #10b981; cor: branca; borda: nenhuma; preenchimento: 12px 25px; raio da borda: 8px; peso da fonte: 700; tamanho da fonte: 12px;
+            cursor: ponteiro; exibição: flexível; alinhamento de itens: centro; espaçamento: 8px; transformação de texto: maiúsculas; margin-right: 15px;
         }
         .btn-add-driver:hover { background: #059669; transform: translateY(-2px); }
 
@@ -173,7 +172,7 @@
         .btn-del { background: rgba(239, 68, 68, 0.1); border: none; color: #ef4444; cursor: pointer; padding: 6px; border-radius: 4px; font-size: 12px; transition: 0.2s; }
         .btn-del:hover { background: #ef4444; color: white; }
 
-        /* CUSTOM POPUP */
+        /* POP-UP PERSONALIZADO */
         .custom-popup {
             position: absolute; background: #1e293b; border: 1px solid #334155;
             width: 380px; max-height: 250px; overflow-y: auto; z-index: 9999;
@@ -204,7 +203,7 @@
         .modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
 
         @keyframes fadeIn { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
-        @keyframes slideUp { from{transform:translateY(40px);opacity:0} to{transform:translateY(0);opacity:1} }
+        @keyframes slideUp { from{transform:translateY( 40px);opacity:0} to{transform:translateY(0); opacity:1} }
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
     </style>
 </head>
@@ -212,12 +211,12 @@
 
 <div class="top-bar">
     <div style="display:flex; align-items:center;">
-        <img src="shopee_pet.png" class="mascot-mini" onerror="this.style.display='none'">
-        <div class="logo"><h1>Sistema <span class="text-shopee">Shopee</span></h1></div>
+        <img src="shopee_pet.png" class="mascot-mini" onerror="this.style.display=' none'">
+        <div class="logo"><h1>Sistema <span class="text-shopee">Shopee</ span></h1></div>
     </div>
     <div style="display:flex; align-items:center; gap: 15px;">
-        <div id="file-info" style="font-size:11px; color:#94a3b8; font-weight:500;">Aguardando...</div>
-        <button id="btn-top-back" class="btn-top-back" onclick="window.location.reload()">
+        <div id="file-info" style="font-size:11px; color:#94a3b8; font-weight:500;">Aguardando... </div>
+        <button id="btn-top-back" class="btn-top-back" onclick="window.location.reload ()">
             <i class="fa-solid fa-rotate-left"></i> Voltar / Importar
         </button>
     </div>
@@ -227,10 +226,10 @@
     <div id="view-upload">
         <h1 class="hero-title">Alocação Automática de Utilitários</h1>
        
-        <div class="upload-box" onclick="document.getElementById('upl').click()">
+        <div class="upload-box" onclick="document.getElementById ('upl').click()" >
             <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-            <h2 style="margin:0 0 10px 0; font-size: 18px; font-weight:700;">Clique para Importar Planilha</h2>
-            <p style="margin:0; color:#94a3b8; font-size: 12px;">Visual de Clusters 100% do Arquivo</p>
+            <h2 style="margin:0 0 10px 0; font-size: 18px; <h2>
+            <p style="margin:0; color:#94a3b8; font-size: 12px;">Múltiplos Imports Diários + Memória de Recusas</p>
             <input type="file" id="upl" accept=".xlsx" style="display:none">
         </div>
        
@@ -241,7 +240,6 @@
             <label class="switch-label"><input type="checkbox" id="checkAll" checked> Utilizar Curingas (All)</label>
         </div>
        
-        <!-- NOVO: BOTÃO DE ACESSO DIRETO AO HISTÓRICO -->
         <div style="text-align: center; margin-top: 40px;">
             <button class="btn-top-back" style="display:inline-flex; font-size: 13px; padding: 12px 25px; border-color: var(--brand); color: #fff;" onclick="viewGlobalHistory()">
                 <i class="fa-solid fa-calendar-days"></i> Consultar Histórico Geral (Online)
@@ -253,46 +251,46 @@
 
     <div id="view-dashboard">
         <div class="stats-bar">
-            <div class="stat-card"><div class="stat-val" style="color:var(--success)" id="v-alloc">0</div><div class="stat-lbl">Alocados</div></div>
-            <div class="stat-card"><div class="stat-val" style="color:#f59e0b" id="v-pend">0</div><div class="stat-lbl">Pendentes</div></div>
-            <div class="stat-card"><div class="stat-val" style="color:#3b82f6" id="v-free">0</div><div class="stat-lbl">Livres</div></div>
-            <div class="stat-card"><div class="stat-val" style="color:#ef4444" id="v-ign">0</div><div class="stat-lbl">Ignorados</div></div>
+            <div class="stat-card"><div class="stat-val" style="color:var(--success)" id="v-alloc">0</div><div class="stat-lbl">Alocados</ div></div>
+            <div class="stat-card"><div class="stat-val" style="color:#f59e0b" id="v-pend">0</div><div class="stat-lbl">Pendentes</ div></div>
+            <div class="stat-card"><div class="stat-val" style="color:#3b82f6" id="v-free">0</div><div class="stat-lbl">Libras</div>< /div>
+            <div class="stat-card"><div class="stat-val" style="color:#ef4444" id="v-ign">0</div><div class="stat-lbl">Ignorados</ div></div>
         </div>
 
         <div class="tab-nav">
-            <button class="tab-btn active" onclick="nav('t1', this)">✅ ALOCADOS</button>
-            <button class="tab-btn" onclick="nav('t2', this)">⚠️ SOBRAS</button>
-            <button class="tab-btn" onclick="nav('t3', this)">🚚 LIVRES</button>
-            <button class="tab-btn" onclick="nav('t4', this)">📊 HISTÓRICO</button>
+            <button class="tab-btn active" onclick="nav('t1', this)"> ✅ALOCADOS</button>
+            <button class="tab-btn" onclick="nav('t2', this)"> ⚠️SOBRAS</button>
+            <button class="tab-btn" onclick="nav('t3', this)"> 🚚LIVRES</button>
+            <button class="tab-btn" onclick="nav('t4', this)"> 📊HISTÓRICO</button>
         </div>
 
         <div class="table-wrap">
             <div class="table-scroll">
                 <table id="t1">
                     <thead><tr>
-                        <th style="width: 40px; text-align:center;">Del</th>
+                        <th style="width: 40px; text-align:center;">De</th>
                         <th style="width: 30px; text-align:center;">#</th>
-                        <th style="width: 60px; text-align:center; color:#ef4444;">Recusou</th>
-                        <th style="width: 70px;">Rota AT</th>
-                        <th style="width: 100px;">AT / TO</th>
-                        <th style="width: 60px; color: #a5f3fc;">Litragem</th>
+                        <th style="width: 60px; text-align:center; <th style="width: 70px;">
+                        Rota AT</th> <
+                        th style="width: 100px;">AT / TO</th> <th style="width: 60px
+                        ; color: #a5f3fc;">Litragem</th>
                         <th style="width: 360px;">Nome Motorista (Popup Auto)</th>
                         <th style="width: 80px;">ID</th>
                         <th>Veículo</th>
                         <th style="color: #fbbf24;">Letra</th>
                         <th style="width: 90px;">Tipo Match</th>
-                        <th style="color:var(--success)">Cluster (Do Arquivo)</th>
+                        <th style="color:var(--success)"> Cluster (Do Arquivo)</th>
                     </tr></thead>
                     <tbody id="b-alocados"></tbody>
                 </table>
 
                 <table id="t2" class="hidden">
-                    <thead><tr><th>Rota AT</th><th>AT Completa</th><th>Litragem</th><th>Letra</th><th>Cluster Necessário</th></tr></thead>
+                    <thead><tr><th>Rota AT</th><th>AT Completa</th><th>Litragem</th> <th>Letra</th><th>Cluster Necessário</th></tr></thead>
                     <tbody id="b-rotas"></tbody>
                 </table>
 
                 <table id="t3" class="hidden">
-                    <thead><tr><th>Nome Motorista</th><th>ID</th><th>Veículo</th><th>Clusters</th></tr></thead>
+                    <thead><tr><th>Nome Motorista</th><th>ID</th><th> Veículo</th><th>Clusters</th>< /tr></thead>
                     <tbody id="b-mot"></tbody>
                 </table>
 
@@ -303,7 +301,7 @@
             </div>
            
             <div id="pull-area" class="btn-pull-area">
-                <button class="btn-pull" onclick="pullRemainingRoutes()">
+                <button class="btn-pull" onclick="pullRemainingRoutes() ">
                     <i class="fa-solid fa-arrow-down"></i> PUXAR ROTAS SOBRANDO
                 </button>
             </div>
@@ -327,36 +325,38 @@
         <input id="new-id" class="modal-input" placeholder="ID Shopee">
         <input id="new-veic" class="modal-input" placeholder="Veículo (Ex: VUC, FIORINO)">
         <div class="modal-actions">
-            <button class="btn btn-sec" onclick="closeAddDriver()">Cancelar</button>
-            <button class="btn btn-primary" onclick="confirmAddDriver()">Salvar e Enviar para Livres</button>
+            <button class="btn btn-sec" onclick="closeAddDriver()"> Cancelar</button>
+            <button class="btn btn-primary" onclick="confirmAddDriver()"> Salvar e Enviar para Livres</button>
         </div>
     </div>
 </div>
 
 <script>
-    // =====================================================================
-    // CONFIGURAÇÃO DO FIREBASE SPX LOGISTICA
-    // =====================================================================
+    // =============================== ============================== =========
+    // CONFIGURAÇÃO DO FIREBASE
+    // ============================== ============================== =========
     const firebaseConfig = {
-        apiKey: "AIzaSyBxzyFdum86noYdpQnldyjX4wiPB7IJEMY",
-        authDomain: "spx-logistica-online.firebaseapp.com",
-        databaseURL: "https://spx-logistica-online-default-rtdb.firebaseio.com",
+        apiKey: " AIzaSyBxzyFdum86noYdpQnldyjX4w iPB7IJEMY",
+        authDomain: " spx-logistica-online. firebaseapp.com ",
+        databaseURL: " https://spx-logistica-online- default-rtdb.firebaseio.com ",
         projectId: "spx-logistica-online",
-        storageBucket: "spx-logistica-online.firebasestorage.app",
+        storageBucket: " spx-logistica-online. firebasestorage.app ",
         messagingSenderId: "347761759499",
-        appId: "1:347761759499:web:c257117806c2496fe77e0e"
+        appId: "1:347761759499:web: c257117806c2496fe77e0e"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp( firebaseConfig);
     const database = firebase.database();
     // =====================================================================
 
-    let store = { allocated: [], routes: [], drivers: [], filename: "" };
+    // O "rejeicoes" guarda a memória dos motoristas que recusaram rotas na sessão
+    let store = { allocated: [], routes: [], drivers: [], rejeicoes: {}, filename: "" };
     let db = { dataCode: "" };
     let driverMap = {};
     let allDriversList = [];
 
     const cleanBasic = t => String(t||"").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
+    const sanitizeKey = (str) => String(str).replace(/[\.\#\$\[ \]\/]/g, '_');
    
     function getTokens(str) {
         if(!str) return [];
@@ -364,7 +364,7 @@
         let rawParts = s.split(/[\;\,\|\/\-\n\r]/);
         let tokens = [];
         for(let p of rawParts) {
-            let t = p.trim().replace(/^[^A-Z0-9]+|[^A-Z0-9]+$/g, "");
+            let t = p.trim().replace(/^[^A-Z0-9]+| [^A-Z0-9]+$/g, "");
             if(t.length > 2) tokens.push(t);
         }
         return tokens;
@@ -372,7 +372,7 @@
 
     const isAll = c => {
         let t = cleanBasic(c);
-        return ['ALL','TODOS','TODAS','QUALQUER','CURINGA'].some(k => t.includes(k));
+        return ['ALL','TODOS','TODAS',' QUALQUER','CURINGA'].some(k => t.includes(k));
     };
    
     const shuffle = a => a.sort(()=>Math.random()-0.5);
@@ -380,18 +380,18 @@
     function getJsDate(cell) {
         if(!cell || !cell.v) return new Date();
         if(cell.v instanceof Date) return cell.v;
-        let p = String(cell.v).trim().split(/[\/\-\.]/);
+        let p = String(cell.v).trim().split(/[ \/\-\.]/);
         if(p.length===3) return new Date(p[2], p[1]-1, p[0]);
         return new Date();
     }
-    function getDateCode(d) { return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`; }
-    function formatDate(d) { return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`; }
+    function getDateCode(d) { return `${d.getFullYear()}${String(d. getMonth()+1).padStart(2,'0')} ${String(d.getDate()). padStart(2,'0')}`; }
+    function formatDate(d) { return `${String(d.getDate()). padStart(2,'0')}-${String(d. getMonth()+1).padStart(2,'0')} -${d.getFullYear()}`; }
 
     function findHeaderRow(ws) {
-        let range = XLSX.utils.decode_range(ws['!ref']);
-        for(let R=range.s.r; R<= Math.min(range.e.r, 15); ++R) {
-            for(let C=range.s.c; C<=range.e.c; ++C) {
-                let cell = ws[XLSX.utils.encode_cell({r:R, c:C})];
+        let range = XLSX.utils.decode_range(ws['! ref']);
+        for(let R=range.sr; R<= Math.min(range.er, 15); ++R) {
+            for(let C=range.sc; C<=range.ec; ++C) {
+                let cell = ws[XLSX.utils.encode_cell({r: R, c:C})];
                 if(cell && cell.v) {
                     let v = String(cell.v).toLowerCase();
                     if(v.includes("rota") || v.includes("at /") || v.includes("motorista")) return R;
@@ -403,9 +403,9 @@
 
     function mapColumns(ws, rowIdx) {
         let map = { rotaAt:'A', atTo:'B', letra:'C', clusterR:'F', litragem:'T', nome:'A', id:'C', clusterM:'E', veic:'G', rodou:'B' };
-        let range = XLSX.utils.decode_range(ws['!ref']);
-        for(let C=range.s.c; C<=range.e.c; ++C) {
-            let cell = ws[XLSX.utils.encode_cell({r:rowIdx, c:C})];
+        let range = XLSX.utils.decode_range(ws['! ref']);
+        for(let C=range.sc; C<=range.ec; ++C) {
+            let cell = ws[XLSX.utils.encode_cell({r: rowIdx, c:C})];
             if(!cell || !cell.v) continue;
             let h = String(cell.v).toLowerCase();
             let colLet = XLSX.utils.encode_col(C);
@@ -424,12 +424,12 @@
         return map;
     }
 
-    document.getElementById('upl').addEventListener('change', function(e) {
+    document.getElementById('upl'). addEventListener('change', function(e) {
         if(!e.target.files[0]) return;
-        store = { allocated: [], routes: [], drivers: [], filename: "" };
+        store = { allocated: [], routes: [], drivers: [], rejeicoes: {}, filename: "" };
         driverMap = {}; allDriversList = [];
-        document.getElementById('b-alocados').innerHTML = "";
-        document.getElementById('loading-overlay').style.display = 'block';
+        document.getElementById('b- alocados').innerHTML = "";
+        document.getElementById(' loading-overlay').style.display = 'block';
        
         const r = new FileReader();
         r.onload = function(evt) {
@@ -444,7 +444,7 @@
                         let dateObj = getJsDate(wsM['A2']);
                         db.dataCode = getDateCode(dateObj);
                         store.filename = `Atribuição ${formatDate(dateObj)}.xlsx`;
-                        document.getElementById('file-info').innerHTML = `Data Base: <b>${formatDate(dateObj)}</b>`;
+                        document.getElementById('file- info').innerHTML = `Banco de Dados:<b>${formatDate(dateObj)}</b>` ;
 
                         let rowR = findHeaderRow(wsR);
                         let mapR = mapColumns(wsR, rowR);
@@ -461,10 +461,10 @@
 
                     } else { alert("Erro: Abas não encontradas."); }
                 } catch (err) { alert("Erro: " + err.message); }
-                document.getElementById('loading-overlay').style.display = 'none';
+                document.getElementById(' loading-overlay').style. display = 'none';
             }, 100);
         };
-        r.readAsArrayBuffer(e.target.files[0]);
+        r.readAsArrayBuffer(e.target. files[0]);
         e.target.value = '';
     });
 
@@ -472,20 +472,20 @@
         let rotasValidas = [];
         let ignored = 0;
        
-        let ckRod = document.getElementById('checkRodizio');
-        let ckAll = document.getElementById('checkAll');
+        let ckRod = document.getElementById(' checkRodizio');
+        let ckAll = document.getElementById(' checkAll');
         let useRodizio = ckRod ? ckRod.checked : true;
         let useAll = ckAll ? ckAll.checked : true;
 
         rom.forEach(r => {
             if(!r['A']) return;
-            let atCode = String(r['B']||"").toUpperCase();
-            if(atCode.includes(db.dataCode)) {
+            let atCode = String(r['B']||""). toUpperCase();
+            if(atCode.includes(db. dataCode)) {
                 let rId = String(r[mapR.rotaAt] || "");
-                if(!rId.toLowerCase().includes("rota") && rId.length > 0) rId = "Rota " + rId;
+                if(!rId.toLowerCase(). includes("rota") && rId.length > 0) rId = "Rota " + rId;
                 let letraVal = String(r['C'] || r[mapR.letra] || "");
                 let litVal = String(r[mapR.litragem] || "-");
-                let clusterReal = String(r[mapR.clusterR]||r['F']||"");
+                let clusterReal = String(r[mapR.clusterR]||r['F' ]||"");
 
                 rotasValidas.push({
                     raw: r, id: rId, at: r[mapR.atTo], letra: letraVal,
@@ -497,9 +497,9 @@
 
         let frota = [];
         mot.forEach(m => {
-            let v = String(m[mapM.veic]||"").toUpperCase();
-            let nome = String(m[mapM.nome]||"").trim().toUpperCase();
-            let nomeReal = String(m[mapM.nome]||"").trim();
+            let v = String(m[mapM.veic]||""). toUpperCase();
+            let nome = String(m[mapM.nome]||"").trim( ).toUpperCase();
+            let nomeReal = String(m[mapM.nome]||"").trim( );
             let id = String(m[mapM.id]||"");
 
             if(nome.length > 2 && !v.includes("MOTO")) {
@@ -507,14 +507,14 @@
                 allDriversList.push(nomeReal);
             }
 
-            if(v.includes("MOTO") || v.includes("PASSEIO")) { ignored++; return; }
+            if(v.includes("MOTO") || v.includes("PASSEIO")) { ignorado++; retornar; }
             let aceito = false;
-            if(v.includes("FIORINO") || v.includes("VAN") || v.includes("VUC") || v.includes("UTILITARIO") || v.includes("ENTREGA")) aceito = true;
+            if(v.includes("FIORINO") || v.includes("VAN") || v.includes("VUC") || v.includes("UTILITÁRIO") || v.includes("ENTREGA")) aceito = true;
 
-            if(aceito && String(m[mapM.clusterM]).length > 1) {
+            if(aceito && String(m[mapM.clusterM]). length > 1) {
                 frota.push({
                     nome: m[mapM.nome], id: m[mapM.id], cluster: String(m[mapM.clusterM]||""),
-                    veic: v, rodou: String(m[mapM.rodou]||"Não"), isAll: isAll(String(m[mapM.clusterM]||"")), disp: true
+                    veic: v, rodou: String(m[mapM.rodou]||"Não"), isAll: isAll(String(m[mapM.clusterM]| |"")), disp: true
                 });
             }
         });
@@ -532,7 +532,7 @@
 
         const runMatch = (forceAll) => {
             rotasValidas.forEach(r => {
-                if(r.st === 'ok') return;
+                if( r.st === 'ok') return;
                 for(let m of frota) {
                     if(!m.disp) continue;
                     if(m.isAll !== forceAll) continue;
@@ -554,12 +554,12 @@
 
                     if(match) {
                         store.allocated.push({
-                            rota: r.id, at: r.at, nome: m.nome, id: m.id,
+                            rota: r.id , at: r.at , nome: m.nome, id: m.id ,
                             veic: m.veic, letra: r.letra, rodou: m.rodou,
                             cluster: r.cluster, litragem: r.litragem, matchType: type,
-                            rejected: false // Inicializa como falso
+                            rejected: falso
                         });
-                        m.disp = false; r.st = 'ok'; break;
+                        m.disp = falso; r.st = 'ok'; break;
                     }
                 }
             });
@@ -569,67 +569,88 @@
         if(useAll) runMatch(true);
 
         rotasValidas.forEach(r => {
-            if(r.st !== 'ok') store.routes.push({ rota: r.id, at: r.at, letra: r.letra, cluster: r.cluster, litragem: r.litragem });
+            if( r.st !== 'ok') store.routes.push({ rota: r.id , at: r.at , letra: r.letra, cluster: r.cluster, litragem: r.litragem });
         });
        
         frota.forEach(m => {
-            if(m.disp) store.drivers.push({ nome: m.nome, id: m.id, veic: m.veic, cluster: m.cluster });
+            if(m.disp) store.drivers.push({ nome: m.nome, id: m.id , veic: m.veic, cluster: m.cluster });
         });
 
         updateStats(ignored);
     }
 
     function openAddDriver() {
-        document.getElementById('add-modal').classList.remove('hidden');
-        document.getElementById('new-name').value = '';
-        document.getElementById('new-id').value = '';
-        document.getElementById('new-veic').value = '';
+        document.getElementById('add- modal').classList.remove(' hidden');
+        document.getElementById('new- name').value = '';
+        document.getElementById('new -id').value = '';
+        document.getElementById('new -veic').value = '';
     }
-    function closeAddDriver() { document.getElementById('add-modal').classList.add('hidden'); }
+    function closeAddDriver() { document.getElementById('add- modal').classList.add('hidden' ); }
    
     function confirmAddDriver() {
-        let name = document.getElementById('new-name').value.trim();
-        let id = document.getElementById('new-id').value.trim();
-        let veic = document.getElementById('new-veic').value.trim() || "MANUAL";
+        let name = document.getElementById('new- name').value.trim();
+        let id = document.getElementById('new- id').value.trim();
+        let veic = document.getElementById('new -veic').value.trim() || "MANUAL";
        
         if(name.length < 3 || id.length < 1) return alert("Preencha Nome e ID corretamente.");
        
         driverMap[name.toUpperCase()] = id;
         allDriversList.push(name);
-        store.drivers.push({ nome: name, id: id, veic: veic, cluster: "MANUAL" });
+        store.drivers.push({ nome: nome, id: id, veic: veic, cluster: "MANUAL" });
        
         closeAddDriver();
         renderScreen();
-        updateStats(0);
+        atualizarEstats(0);
         alert("Motorista adicionado aos Livres!");
     }
 
-    // =====================================================================
-    // LÓGICA DE SALVAMENTO NO FIREBASE
-    // =====================================================================
+    // ============================ ====================== ==========
+    // LÓGICA DE SALVAMENTO NO FIREBASE (V3 - SEPARA ROTAS E REJEIÇÕES)
+    // ============================ ======================= =========
     window.saveDayToFirebase = function() {
-        if (!db.dataCode || store.allocated.length === 0) return; // Só salva se houver dados importados
+        if (!db.dataCode) return;
 
-        let allocatedToday = {};
+        deixe atualizações = {};
+
+        // 1. Salva as rotas da tela (ou tira do banco se você apagou)
         store.allocated.forEach(a => {
+            let keyAT = sanitizeKey( a.at || a.rota || 'R_'+Math.random().toString( 36).substr(2,9));
             let nome = a.nome.trim().toUpperCase();
-            if (nome && nome.length > 2 && nome !== "MANUAL") {
-                if (!allocatedToday[nome]) allocatedToday[nome] = { id: a.id, count: 0, rejected: false };
-               
-                if (a.rejected) {
-                    allocatedToday[nome].rejected = true;
-                } else {
-                    allocatedToday[nome].count += 1;
-                }
+           
+            if (nome && nome.length > 2 && name !== "MANUAL") {
+                updates['routes/' + keyAT] = { name: name, id: a.id };
+            } else {
+                updates['routes/' + keyAT] = null;
             }
         });
+
+        // 2. Garante que rotas na aba 'Sobras' não fiquem presas num motorista no banco
+        store.routes.forEach(r => {
+            let keyAT = sanitizeKey(r.at || r.rota);
+            updates['routes/' + keyAT] = null;
+        });
+
+        // 3. Salva a "memória de rejeições" da sessão
+        if(store.rejeicoes) {
+            Object.keys(store.rejeicoes).forEach(nomeKey => {
+                let sName = sanitizeKey(nomeKey);
+                let infoRecusa = store.rejeicoes[nomeKey];
+               
+                if(infoRecusa.rejected === true) {
+                    updates['rejected/' + sName] = { id: infoRecusa.id, nome: nomeKey, rejected: true };
+                } else {
+                    updates['rejected/' + sName] = null; // Remove se você desmarcou
+                }
+            });
+        }
        
-        // Salva silenciosamente no Firebase
-        database.ref('shopee_history/' + db.dataCode).set(allocatedToday);
+        if(Object.keys(updates).length > 0) {
+            database.ref('shopee_history_v3/' + db.dataCode).update(updates);
+        }
     }
 
     // =====================================================================
-    // LÓGICA DE LEITURA DO HISTÓRICO ONLINE (EVITA TRAVAMENTO)
+    // LÓGICA DE LEITURA DO HISTÓRICO ONLINE (JUNTA TUDO E APLICA NEON)
     // =====================================================================
     window.loadAndRenderHistory = async function(baseDateCode) {
         if (!baseDateCode) return;
@@ -652,48 +673,71 @@
             let d = new Date(mondayDate);
             d.setDate(mondayDate.getDate() + i);
            
-            let dCode = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
-            let dDisplay = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+            let dCode = `${d.getFullYear()}${String(d.padStart(2,'0')}`;${String(d.getDate()).getMonth()+1).padStart(2,'0')}
+            let dDisplay = `${String(d.getDate()). padStart(2,'0')}/${String(d.getMonth ()+1).padStart(2,'0')} `;
             weekDates.push(dCode);
            
             let isToday = (dCode === baseDateCode) ? 'color: #fff; border-bottom: 2px solid var(--brand);' : '';
-            theadHtml += `<th style="text-align:center; ${isToday}">${weekHeaders[i]}<br><span style="font-size:9px; color:#94a3b8;">${dDisplay}</span></th>`;
+            theadHtml += `<th style="text-align:center; ${isToday}">${weekHeaders[i]}< br><span style="font-size:9px; color:#94a3b8;">${dDisplay}</ span></th>`;
         }
-        theadHtml += `<th style="color:var(--brand); text-align:center;">Total</th></tr>`;
-        document.getElementById('h-historico').innerHTML = theadHtml;
+        theadHtml += `<th style="color:var(--brand); text-align:center;">Total</th> </tr>`;
+        document.getElementById('h- historico').innerHTML = theadHtml;
 
-        document.getElementById('b-historico').innerHTML = `<tr><td colspan="10" style="text-align:center; color: var(--brand); font-weight:bold; padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> Sincronizando com Banco de Dados...</td></tr>`;
+        document.getElementById('b- historico').innerHTML = `<tr><td colspan="10" style="text-align:center; color: var(--brand); font-weight:bold; padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> Sincronizando com Banco de Dados V3...</td></tr>`;
 
         // Busca apenas as 7 datas exatas
         let historyFromFirebase = {};
         try {
-            let fetchPromises = weekDates.map(dCode => database.ref('shopee_history/' + dCode).once('value'));
+            let fetchPromises = weekDates.map(dCode => database.ref('shopee_history_ v3/' + dCode).once('value'));
             let snapshots = await Promise.all(fetchPromises);
            
             snapshots.forEach((snap, index) => {
-                if (snap.exists()) {
-                    historyFromFirebase[weekDates[index]] = snap.val();
-                }
+                if (snap.exists()) historyFromFirebase[weekDates[ index]] = snap.val();
             });
         } catch (error) {
-            console.error("Erro Firebase:", error);
-            document.getElementById('b-historico').innerHTML = `<tr><td colspan="10" style="text-align:center; color: #ef4444;">Erro ao carregar histórico. Verifique a conexão.</td></tr>`;
-            return;
+            document.getElementById('b- historico').innerHTML = `<tr><td colspan="10" style="text-align:center; color: #ef4444;">Erro ao carregar histórico. Verifique a conexão.</td></tr>`;
+            retornar;
         }
 
-        // Agrupa Dados
-        let weekData = {};
+        deixe semanaData = {};
         weekDates.forEach(dCode => {
             let dayData = historyFromFirebase[dCode] || {};
-            Object.keys(dayData).forEach(nome => {
-                if (!weekData[nome]) weekData[nome] = { id: dayData[nome].id, days: {}, total: 0 };
+            let dayRoutes = dayData.routes || {};
+            let dayRejects = dayData.rejected || {};
+           
+            // 1. Conta as Rotas Feitas
+            Object.keys(dayRoutes). forEach(routeKey => {
+                let routeInfo = dayRoutes[routeKey];
+                let nome = routeInfo.nome;
                
-                let count = dayData[nome].count || 0;
-                let isRejected = dayData[nome].rejected || false;
+                if (!weekData[nome]) weekData[nome] = { id: routeInfo.id, days: {} };
+                if (!weekData[nome].days[dCode]) weekData[nome].days[dCode] = { count: 0, rejected: false };
                
-                weekData[nome].days[dCode] = { count: count, rejected: isRejected };
-                weekData[nome].total += count;
+                weekData[nome].days[dCode]. count += 1; // Se ele pegou 2 rotas em 2 imports,isso vai somar 2
             });
+
+            // 2. Aplica Recusas por cima (Sobrepõe e zera o dia)
+            Object.keys(dayRejects). forEach(rejKey => {
+                let rejInfo = dayRejects[rejKey];
+                let nome = rejInfo.nome || rejKey;
+               
+                if (!weekData[nome]) weekData[nome] = { id: rejInfo.id, days: {} };
+                if (!weekData[nome].days[dCode]) weekData[nome].days[dCode] = { count: 0, rejected: false };
+               
+                weekData[nome].days[dCode].rejected = true; // Força a punição para aquele dia
+            });
+        });
+
+        // 3. Calcula os totais (Ignora os dias penalizados)
+        Object.keys(weekData).forEach(nome => {
+            let total = 0;
+            weekDates.forEach(dCode => {
+                let dayObj = weekData[nome].days[dCode];
+                if (dayObj && !dayObj.rejected) {
+                    total += dayObj.count;
+                }
+            });
+            weekData[nome].total = total;
         });
 
         // Ordena Tabela
@@ -712,9 +756,10 @@
                 if (!dayObj) {
                     tbodyHtml += `<td style="text-align:center; color: #475569;">-</td>`;
                 } else if (dayObj.rejected) {
-                    // Célula Vermelha Neon indicando perda da rota
+                    // SE ESTIVER NA LISTA DE RECUSAS -> 0 NEON
                     tbodyHtml += `<td style="text-align:center;" class="text-neon-red">0</td>`;
                 } else {
+                    // SE DEU TUDO CERTO -> MOSTRA A SOMA DE ROTAS DAQUELE DIA
                     tbodyHtml += `<td style="text-align:center; color: #10b981; font-weight: bold;">${dayObj.count}</td>`;
                 }
             });
@@ -726,133 +771,144 @@
         document.getElementById('b-historico').innerHTML = tbodyHtml || `<tr><td colspan="10" style="text-align:center;">Nenhum dado encontrado no Firebase para esta semana.</td></tr>`;
     }
 
-    // =====================================================================
+    // ============================================================ =========
     // ACESSO DIRETO AO HISTÓRICO GERAL DA TELA INICIAL
-    // =====================================================================
+    // ============================== =============================== =========
     window.viewGlobalHistory = function() {
-        document.getElementById('view-upload').style.display = 'none';
-        document.getElementById('view-dashboard').style.display = 'block';
-        document.getElementById('btn-top-back').style.display = 'flex';
+        document.getElementById('view- upload').style.display = 'none';
+        document.getElementById('view- dashboard').style.display = 'block';
+        document.getElementById('btn- top-back').style.display = 'flex';
        
-        // Esconde tudo que não é o histórico
-        document.querySelector('.stats-bar').style.display = 'none';
-        document.getElementById('pull-area').style.display = 'none';
-        document.getElementById('footer-actions').classList.add('hidden');
-        document.querySelectorAll('table').forEach(t => t.classList.add('hidden'));
-        document.getElementById('t4').classList.remove('hidden');
+        document.querySelector('. stats-bar').style.display = 'none';
+        document.getElementById('pull- area').style.display = 'none';
+        document.getElementById(' footer-actions').classList.add ('hidden');
+        document.querySelectorAll(' table').forEach(t => t.classList.add('hidden'));
+        document.getElementById('t4'). classList.remove('hidden');
        
-        // Esconde as abas de trabalho e deixa só o botão do histórico ativo
-        document.querySelectorAll('.tab-btn').forEach(b => b.style.display = 'none');
-        let histBtn = document.querySelector('.tab-nav button:nth-child(4)');
+        document.querySelectorAll('. tab-btn').forEach(b => b.style.display = 'none');
+        let histBtn = document.querySelector('.tab -nav button:nth-child(4)');
         histBtn.style.display = 'block';
-        histBtn.classList.add('active');
-        document.getElementById('file-info').innerHTML = `Visualizando: <b>Histórico Geral</b>`;
-
-        // Pega a data de HOJE para basear a semana
-        let today = new Date();
-        let todayCode = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+        histBtn.classList.add('active' );
        
-        loadAndRenderHistory(todayCode);
+        let today = new Date();
+        let todayCode = `${today.getFullYear()}${ String(today.getMonth()+1). padStart(2,'0')}${String( today.getDate()).padStart(2,' 0')}`;
+        document.getElementById('file- info').innerHTML = `Visualizando: <b>Histórico Geral (Hoje: ${String(today.getDate()). padStart(2,'0')}/${String( today.getMonth()+1).padStart( 2,'0')})</b>`;
+
+        loadAndRenderHistory( todayCode);
     }
 
-    // --- INTERAÇÕES DE REJEIÇÃO ---
+    // --- INTERAÇÕES DE REJEIÇÃO (NOVA LÓGICA) ---
     window.toggleReject = function(idx, checked) {
-        store.allocated[idx].rejected = checked;
+        let row = store.allocated[idx];
+        linha.rejeitado = verificado;
+       
+        deixe nome = row.nome.trim().toUpperCase();
+        if(nome && nome.length > 2 && nome !== "MANUAL") {
+            // Guarda ou remove a recusa da memória local
+            if(!store.rejeicoes) store.rejeicoes = {};
+            store.rejeicoes[nome] = { rejeitado: verificado, id: row.id };
+        }
+       
         saveDayToFirebase();
         loadAndRenderHistory(db.dataCode);
     };
 
     // --- UI ---
     function updateStats(ign) {
-        document.getElementById('v-alloc').innerText = store.allocated.length;
+        document.getElementById('v- alloc').innerText = store.allocated.length;
         document.getElementById('v-pend').innerText = store.routes.length;
-        document.getElementById('v-free').innerText = store.drivers.length;
-        if(ign > 0) document.getElementById('v-ign').innerText = ign;
+        document.getElementById('v- free').innerText = store.drivers.length;
+        if(ign > 0) document.getElementById('v- ign').innerText = ign;
     }
 
     window.pullRemainingRoutes = function() {
         if(store.routes.length === 0) return alert("Não há rotas sobrando.");
         let pulled = store.routes.map(r => ({
-            rota: r.rota, at: r.at, nome: "", id: "",
-            veic: "", letra: r.letra, rodou: "", cluster: r.cluster, litragem: r.litragem, matchType: "Manual", rejected: false
+            rota: r.rota, at: r.at , nome: "", id: "",
+            veic: "", letra: r.letra, rodou: "", cluster: r.cluster, litragem: r.litragem, matchType: "Manual", rejeitado: false
         }));
         store.allocated = [...store.allocated, ...pulled];
-        store.routes = [];
+        loja.rotas = [];
         renderScreen();
-        updateStats(0);
+        atualizarEstats(0);
     }
 
     function renderScreen() {
-        document.getElementById('view-upload').style.display = 'none';
-        document.getElementById('view-dashboard').style.display = 'block';
-        document.getElementById('footer-actions').style.display = 'flex';
-        document.getElementById('footer-actions').classList.remove('hidden');
-        document.getElementById('btn-top-back').style.display = 'flex';
+        document.getElementById('view- upload').style.display = 'none';
+        document.getElementById('view- dashboard').style.display = 'block';
+        document.getElementById(' footer-actions').style.display = 'flex';
+        document.getElementById(' footer-actions').classList.remove ('hidden');
+        document.getElementById('btn- top-back').style.display = 'flex';
 
         let nameCount = {};
         let idCount = {};
         store.allocated.forEach(r => {
             if(r.nome && r.nome.length > 2) nameCount[r.nome] = (nameCount[r.nome] || 0) + 1;
-            if(r.id && r.id.length > 1) idCount[r.id] = (idCount[r.id] || 0) + 1;
+            if( r.id && r.id.length > 1) idCount[ r.id ] = (idCount[ r.id ] || 0) + 1;
         });
 
         let h1 = "";
         store.allocated.forEach((r,i) => {
             let cls = r.nome === "" ? "edit-input input-manual" : "edit-input";
-            let isDup = (nameCount[r.nome] > 1) || (idCount[r.id] > 1);
+            let isDup = (nameCount[r.nome] > 1) || (idCount[ r.id ] > 1);
             let rowClass = isDup ? "row-dup" : "";
            
             let mTag = "";
-            if(r.matchType === "Fixo") mTag = `<span class="tag-fixo">🎯 Fixo</span>`;
-            else if(r.matchType === "Curinga") mTag = `<span class="tag-curinga">🃏 Curinga</span>`;
-            else mTag = `<span style="color:#64748b; font-size:10px;">Manual</span>`;
+            if(r.matchType === "Fixo") mTag = `<span class="tag-fixo"> 🎯Fixo</span>`;
+            else if(r.matchType === "Curinga") mTag = `<span class="tag-curinga"> 🃏Curinga</span>`;
+            else mTag = `<span style="color:#64748b; font-size:10px;">Manual</span> `;
 
             h1 += `<tr class="${rowClass}">
-                <td style="text-align:center"><button class="btn-del" onclick="delRow(${i})"><i class="fa-solid fa-trash"></i></button></td>
+                <td style="text-align:center">< button class="btn-del" onclick="delRow(${i})"><i class="fa-solid fa-trash"></i></button></td>
                 <td style="text-align:center; color:#64748b; font-size:10px;">${i+1}</td>
                 <td style="text-align:center;">
-                    <input type="checkbox" class="checkbox-reject" ${r.rejected ? 'checked' : ''} onchange="toggleReject(${i}, this.checked)">
+                    <input type="checkbox" class="checkbox-reject" ${r.rejected ? 'checked' : ''} onchange="toggleReject(${i}, this.checked)" title="Marcar para zerar no histórico">
                 </td>
-                <td>${r.rota}</td><td>${r.at}</td>
-                <td style="color:#a5f3fc; text-align:center;">${r.litragem || '-'}</td>
-                <td style="position:relative;">
+                <td>${r.rota}</td><td>${ r.at }< /td>
+                <td style="color:#a5f3fc; text-align:center;">${r. litragem || < td
+                style="position:relative;">
                     <input class="${cls}" value="${r.nome}"
                            onclick="onInputName(${i}, this)"
                            oninput="onInputName(${i}, this)"
                            onchange="onNameChange(${i}, this.value)"
                            placeholder="Digite nome..." autocomplete="off">
                 </td>
-                <td><input class="${cls}" id="id-${i}" value="${r.id}" readonly></td>
-                <td>${r.veic}</td><td>${r.letra}</td>
-                <td style="text-align:center;">${mTag}</td>
-                <td style="color:#10b981; font-weight:700;">${r.cluster}</td>
+                <td><input class="${cls}" id="id-${i}" value="${ r.id }" readonly></td>
+                <td>${r.veic}</td><td>${r. letra}</td>
+                <td style="text-align:center;">${ mTag}</td>
+                <td style="color:#10b981; font-weight:700;">${r.cluster} </td>
             </tr>`;
         });
-        document.getElementById('b-alocados').innerHTML = h1;
+        document.getElementById('b- alocados').innerHTML = h1;
 
         let h2 = "";
-        store.routes.forEach(r => { h2 += `<tr><td>${r.rota}</td><td>${r.at}</td><td>${r.litragem}</td><td>${r.letra}</td><td style="color:#f59e0b;">${r.cluster}</td></tr>`; });
-        document.getElementById('b-rotas').innerHTML = h2;
+        store.routes.forEach(r => { h2 += `<tr><td>${r.rota}</td><td>${ r .at }</td><td>${r.litragem}</ td><td>${r.letra}</td><td style="color:#f59e0b;">${r. cluster}</td></tr>`; });
+        document.getElementById('b- rotas').innerHTML = h2;
 
         let h3 = "";
-        store.drivers.forEach(m => { h3 += `<tr><td>${m.nome}</td><td>${m.id}</td><td>${m.veic}</td><td>${m.cluster}</td></tr>`; });
-        document.getElementById('b-mot').innerHTML = h3;
+        store.drivers.forEach(m => { h3 += `<tr><td>${m.nome}</td><td>${ m.id } </td><td>${m.veic}</td><td> ${m.cluster}</td></tr>`; });
+        document.getElementById('b- mot').innerHTML = h3;
 
         saveDayToFirebase();
-        loadAndRenderHistory(db.dataCode);
+        loadAndRenderHistory(db.dataCode );
     }
 
     function checkFree(name) { return store.drivers.some(d => d.nome.toUpperCase() === name.toUpperCase()); }
 
-    window.onNameChange = function(idx, val) {
+    window.onNameChange = function(idx,val) {
         let cleanName = val.trim().toUpperCase();
         let oldName = store.allocated[idx].nome;
-        if(oldName && oldName.toUpperCase() !== cleanName) recycleDriver(oldName);
+       
+        // Se a pessoa digitou um nome novo ou apagou, reseta a caixinha de "Recusou" na UI para não penalizar o NOVO motorista
+        if(oldName && oldName.toUpperCase() !== cleanName) {
+            recycleDriver(oldName);
+            store.allocated[idx].rejected = false;
+        }
+       
         store.allocated[idx].nome = val;
        
         if(cleanName === "") {
             store.allocated[idx].id = "";
-            store.allocated[idx].rejected = false; // Reseta a rejeição se apagar o nome
         } else {
             if(driverMap[cleanName]) {
                 store.allocated[idx].id = driverMap[cleanName];
@@ -877,7 +933,7 @@
 
         let matches = [];
         if(!val) { matches = allDriversList; }
-        else { matches = allDriversList.filter(d => d.toUpperCase().includes(val.toUpperCase())); }
+        else { matches = allDriversList.filter(d => d.toUpperCase().includes(val.toUpperCase ())); }
 
         matches.sort((a,b) => {
             let freeA = checkFree(a) ? 1 : 0;
@@ -893,16 +949,16 @@
             let isFree = checkFree(sName);
             let b = document.createElement("DIV");
             b.className = isFree ? "popup-item status-free" : "popup-item status-busy";
-            b.innerHTML = `<span>${sName}</span>` + (isFree ? " <span class='badge-free'>LIVRE</span>" : "");
+            b.innerHTML = `<span>${sName}</span>` + (isFree ? " <span class='badge-free'>LIVRE</span> " : "");
            
-            b.addEventListener("mousedown", function(e) {
+            b.addEventListener("mousedown" , function(e) {
                 e.preventDefault();
                 let oldName = store.allocated[idx].nome;
                 if(oldName) recycleDriver(oldName);
 
                 inp.value = sName;
                 store.allocated[idx].nome = sName;
-                store.allocated[idx].rejected = false; // Reseta rejeição ao mudar nome
+                store.allocated[idx].rejected = false; // Garante que o novo motorista chega sem recusa
                
                 let k = sName.trim().toUpperCase();
                 if(driverMap[k]) store.allocated[idx].id = driverMap[k];
@@ -933,19 +989,19 @@
     }
 
     function closeAllLists() {
-        let x = document.getElementsByClassName("custom-popup");
-        for (let i = 0; i < x.length; i++) x[i].parentNode.removeChild(x[i]);
+        let x = document. getElementsByClassName(" custom-popup");
+        for (let i = 0; i < x.length; i++) x[i].parentNode.removeChild(x[ i]);
     }
    
-    document.addEventListener("mousedown", function(e) {
-        if(!e.target.classList.contains('edit-input') && !e.target.closest('.custom-popup')) {
+    document.addEventListener(" mousedown", function(e) {
+        if(!e.target.classList. contains('edit-input') && !e.target.closest('.custom- popup')) {
             closeAllLists();
         }
     });
 
     window.copyCombined = function(btn) {
-        let text = store.allocated.map(r => `${r.id || ""}\t${r.at || ""}`).join('\n');
-        navigator.clipboard.writeText(text).then(() => {
+        let text = store.allocated.map(r => `${ r.id || ""}\t${ r.at || ""}`).join('\n');
+        navigator.clipboard.writeText( text).then(() => {
             let original = btn.innerHTML;
             btn.innerHTML = "<i class='fa-solid fa-check'></i> Copiado!";
             btn.style.background = "#10b981";
@@ -962,12 +1018,12 @@
     };
 
     window.nav = function(id, btn) {
-        document.querySelectorAll('table').forEach(t => t.classList.add('hidden'));
-        document.getElementById(id).classList.remove('hidden');
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll(' table').forEach(t => t.classList.add('hidden'));
+        document.getElementById(id) .classList.remove('hidden');
+        document.querySelectorAll('. tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        if(id === 't1') document.getElementById('pull-area').style.display = 'block';
-        else document.getElementById('pull-area').style.display = 'none';
+        if(id === 't1') document.getElementById('pull- area').style.display = 'block';
+        else document.getElementById('pull- area').style.display = 'none';
     };
 
     window.exportData = function() {
